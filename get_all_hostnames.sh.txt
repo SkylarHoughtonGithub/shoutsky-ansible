@@ -1,0 +1,11 @@
+#! /bin/bash
+
+echo " " > /home/a001sv019/hostnames.csv
+
+hostlist=$(grep -E '^\[' retro-ansible/hosts | sed 's/\[//' | sed 's/\]//')
+
+for i in $hostlist
+do
+  ansible_hostname=$(ansible $i -i retro-ansible/hosts -a 'hostname')
+  echo " $i,$ansible_hostname" >> /home/a001sv019/hostnames.csv
+done
