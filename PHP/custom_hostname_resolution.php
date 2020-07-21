@@ -1,7 +1,7 @@
 <?PHP
 
-$host = "i260amod1.radiustoday.com";
-$ip = "10.255.156.7";
+$host = "hostname";
+$ip = "ip_address";
 
 $resolved_hostname = gethostbyaddr($ip);
 
