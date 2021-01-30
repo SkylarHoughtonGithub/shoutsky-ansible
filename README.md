@@ -1,6 +1,5 @@
-# turbo-potato
-Personal Repo for scripts and cool tools
+# Jank's Toolset
 
-I favor Linux. I love Ansible. I aspire to do Python more. I put up with Windows (with Powershell as the caveat)
+This is my personal repo for scripts and cool tools that helped me solve problems along my journey.
 
-For the sake of a portfolio of my work, this is to track the things I have worked on, work with and what I can do.
+I love Linux. I love Ansible. Powershell keeps me involved in Windows. I aspire to do more complex things with Python, Go, React and more.
