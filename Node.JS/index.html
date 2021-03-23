@@ -1,0 +1,51 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+
+<head> 
+	<title>Typed.js</title> 
+
+	<!-- Import style.css from root directory -->
+	<link rel="stylesheet" href="./style.css" /> 
+</head> 
+
+<body> 
+	<div class="heading"> 
+		<h1>Jankee_Munkey</h1> 
+		<h3> 
+			<span class="text-slider-items"> 
+				A place to fuck off, Seriously, fuck off. 
+			</span> 
+			<strong class="text-slider"></strong> 
+
+		</h3> 
+	</div> 
+	<!-- Import typed.min.js file from typed.js folder -->
+	<script src= 
+		"node_modules/typed.js/lib/typed.js"> 
+	</script> 
+	
+	<!-- Add jquery cdn -->
+	<script src= 
+"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.js"> 
+	</script> 
+
+	<!-- Add this script for successful 
+		implementation of typed.js -->
+	<script> 
+		if ($(".text-slider").length == 1) { 
+			
+			var typed_strings = 
+				$(".text-slider-items").text(); 
+
+			var typed = new Typed(".text-slider", { 
+				strings: typed_strings.split(", "), 
+				typeSpeed: 50, 
+				loop: true, 
+				backDelay: 900, 
+				backSpeed: 30, 
+			}); 
+		} 
+	</script> 
+</body> 
+
+</html> 

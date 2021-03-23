@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Jank's POTD Flask App</title>
+        <link rel="stylesheet" href= "{{ url_for('static',filename='styles/index.css') }}">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    </head>
+    <body>
+        <div id="logo"> 
+            <a href ="https://jankeemunkey.com">
+                <img src="{{ url_for('static', filename='favicon-256x256.png') }}">
+            </a>
+        </div>
+    <h2>
+        <div id="home_redirect"> 
+            <a href ="{{ url_for('index') }}">Home Page</a>
+        </div>
+    </h2>
+        <header>
+            <h1>Planet of the Day Information - IN ACTION!</h1>
+        </header>
+        </br>
+        <div class="app_in_action">
+            Today's Date: {{ date }}
+            </br>
+            <H2>POTD Image:</H2><img src="{{ image_url }}" alt="Nasa_POTD"></img>
+            </br>
+            Image Title: {{ title }}
+            </br>
+            </br>
+            <H2>Facts on the Image:</H2>
+            {{ explanation }}
+        </div>
+        <footer>
+            <p>&copy; 2021 - Skylar Houghton, Jank the Munkey</p>
+        </footer>
+    </body>
+</html>

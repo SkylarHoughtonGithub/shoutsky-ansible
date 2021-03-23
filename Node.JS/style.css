@@ -1,0 +1,27 @@
+<style> 
+    body { 
+        background-color: black; 
+        font-family: Ubuntu 
+            'Open Sans', 'Helvetica Neue', sans-serif; 
+  
+    } 
+  
+    .text-slider-items { 
+        display: none; 
+    } 
+  
+    .heading { 
+        margin-top: 200px; 
+        text-align: center; 
+    } 
+  
+    .heading h1 { 
+        color: Green; 
+        font-size: 70px; 
+    } 
+  
+    .heading h3 { 
+        color: black; 
+        font-size: 20px; 
+    } 
+</style> 
