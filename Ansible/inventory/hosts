@@ -1,0 +1,10 @@
+[proxy]
+192.168.55.200 ansible_host=proxy1
+
+[web]
+192.168.55.201 ansible_host=web1
+192.168.55.202 ansible_host=web2
+
+[database]
+192.168.55.203 ansible_host=database1
+192.168.55.204 ansible_host=database2

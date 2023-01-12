@@ -1,0 +1,11 @@
+---
+# tasks file for RHCE
+- name: update existing motd
+  template:
+    src: templates/motd.j2
+    dest: /etc/motd
+    owner: root
+    group: root
+    backup: yes
+
+      

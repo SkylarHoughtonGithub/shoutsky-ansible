@@ -1,0 +1,7 @@
+---
+- hosts: all
+  remote_user: automation
+  roles:
+  - ../roles/motd
+  
+
