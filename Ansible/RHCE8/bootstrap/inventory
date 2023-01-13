@@ -1,0 +1,15 @@
+[repo]
+repo.mindshout.com ansible_host=192.168.55.199 ansible_user=vagrant ansible_ssh_pass=vagrant ansible_python_interpreter=/usr/bin/python3
+
+[control]
+control.mindshout.com ansible_host=192.168.55.200 ansible_user=vagrant ansible_ssh_pass=vagrant ansible_python_interpreter=/usr/bin/python3
+
+[proxy]
+proxy1.mindshout.com ansible_host=192.168.55.201 ansible_user=vagrant ansible_ssh_pass=vagrant ansible_python_interpreter=/usr/bin/python3
+
+[web]
+web1.mindshout.com ansible_host=192.168.55.202 ansible_user=vagrant ansible_ssh_pass=vagrant ansible_python_interpreter=/usr/bin/python3
+web2.mindshout.com ansible_host=192.168.55.203 ansible_user=vagrant ansible_ssh_pass=vagrant ansible_python_interpreter=/usr/bin/python3
+
+[mysql]
+mysql1.mindshout.com ansible_host=192.168.55.204 ansible_user=vagrant ansible_ssh_pass=vagrant ansible_python_interpreter=/usr/bin/python3

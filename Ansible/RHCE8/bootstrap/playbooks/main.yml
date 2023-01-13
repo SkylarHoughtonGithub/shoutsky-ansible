@@ -1,0 +1,9 @@
+---
+- import_playbook: repo1.yml
+- import_playbook: control.yml
+- import_playbook: proxy1.yml
+- import_playbook: web1.yml
+- import_playbook: web2.yml
+- import_playbook: mysql1.yml
+- import_playbook: keys.yml
+...
