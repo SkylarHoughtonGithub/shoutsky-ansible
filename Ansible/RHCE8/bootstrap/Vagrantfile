@@ -16,7 +16,7 @@ config.vm.box_check_update = false
 # repo1
 config.vm.define "repo1" do |repo1|
   
-  repo1.vm.box = "rdbreak/rhel8node"    
+  repo1.vm.box = "generic/rhel8"    
   repo1.vm.provider "virtualbox" do |repo1|
     repo1.memory = "512"
     unless File.exist?(repo1_disk1)
@@ -33,10 +33,9 @@ config.vm.define "repo1" do |repo1|
   repo1.vm.network "private_network", ip: "192.168.55.199"
 end
 
-
 # control
 config.vm.define "control" do |control|
-  control.vm.box = "rdbreak/rhel8node"
+  control.vm.box = "generic/rhel8"
   control.vm.network "private_network", ip: "192.168.55.200"
   control.vm.provider :virtualbox do |control|
     control.customize ['modifyvm', :id,'--memory', '2048']
@@ -55,7 +54,7 @@ end
 
 # proxy1
 config.vm.define "proxy1" do |proxy1|
-  proxy1.vm.box = "rdbreak/rhel8node"
+  proxy1.vm.box = "generic/rhel8"
   proxy1.vm.network "private_network", ip: "192.168.55.201"
   proxy1.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: [".git/", "*.vdi"]
   proxy1.vm.provider "virtualbox" do |proxy1|
@@ -77,7 +76,7 @@ end
 
 # web1
 config.vm.define "web1" do |web1|
-  web1.vm.box = "rdbreak/rhel8node"
+  web1.vm.box = "generic/rhel8"
   web1.vm.network "private_network", ip: "192.168.55.202"
   web1.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: [".git/", "*.vdi"]
   web1.vm.provider "virtualbox" do |web1|
@@ -99,7 +98,7 @@ end
 
 # web2
 config.vm.define "web2" do |web2|
-  web2.vm.box = "rdbreak/rhel8node"
+  web2.vm.box = "generic/rhel8"
   web2.vm.network "private_network", ip: "192.168.55.203"
   web2.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: [".git/", "*.vdi"]
   web2.vm.provider "virtualbox" do |web2|
@@ -121,7 +120,7 @@ end
 
 # mysql1
 config.vm.define "mysql1" do |mysql1|
-  mysql1.vm.box = "rdbreak/rhel8node"
+  mysql1.vm.box = "generic/rhel8"
   mysql1.vm.network "private_network", ip: "192.168.55.204"
   mysql1.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: [".git/", "*.vdi"]
   mysql1.vm.provider "virtualbox" do |mysql1|
