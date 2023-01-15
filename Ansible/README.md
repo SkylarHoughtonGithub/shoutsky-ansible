@@ -1,6 +1,6 @@
 Created keys to use with the automation user and distribute from control to node[1:4]. This is a throwaway key, do not use on any system you do not intend on destroying. Need to integrate into the Vagrantfile bootstrapper provided by rhce8env.
 
-`ssh-keygen -t ecdsa -b 521`
+`ssh-keygen -t ecdsa -b 521 -f ~/.ssh/shoughtsky_ecdsa512 -q -P ""`
 
 Private Key
 ```
