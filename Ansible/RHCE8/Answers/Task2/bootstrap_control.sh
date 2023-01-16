@@ -9,4 +9,4 @@ sudo -u shoughtsky bash -c 'ssh-keygen -t ecdsa -b 521 -f /home/shoughtsky/.ssh/
 sudo bash -c 'chown shoughtsky. /home/shoughtsky/.ssh ; chmod 700 /home/shoughtsky/.ssh'
 sudo bash -c 'chown shoughtsky. /home/shoughtsky/.ssh/shoughtsky_ecdsa512 ; chmod 600 /home/shoughtsky/.ssh/shoughtsky_ecdsa512'
 sudo bash -c 'chown shoughtsky. /home/shoughtsky/.ssh/shoughtsky_ecdsa512.pub ; chmod 644 /home/shoughtsky/.ssh/shoughtsky_ecdsa512.pub'
-sudo bash -c 'cp -r Ansible /home/shoughtonsky/'
+sudo bash -c 'cp -r Ansible /home/shoughtsky/'
