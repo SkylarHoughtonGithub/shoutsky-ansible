@@ -1,32 +1,55 @@
-- hosts: web
+#TODO: update lineinfile ENCRYPT_METHOD to SHA512 in /etc/login.defs
+
+- hosts: all
   remote_user: shoughtsky
   become: True
   tasks:
+  - name: Set SHA512 password hash
+    lineinfile:
+      path: /etc/login.defs
+      state: present
+      regexp: ^ENCRYPT_METHOD
+      line: ENCRYPT_METHOD SHA512
+
   - name: add alice
     user:
       name: alice
       state: present
       uid: 1201
-      ssh_key_file:
+      shell: /bin/bash
+      ssh_key_file: files/id_ecdsa
+      groups: wheel
+      append: True
     when: "'web' in group_names"
   - name: add vincent
     user:
       name: vincent
       state: present
       uid: 1202
-      ssh_key_file:
+      shell: /bin/bash
+      ssh_key_file: files/id_ecdsa
+      groups: wheel
+      append: True
     when: "'web' in group_names"
+
+
   - name: add sandy
     user:
       name: sandy
       state: present
       uid: 2201
-      ssh_key_file:
+      shell: /bin/bash
+      ssh_key_file: files/id_ecdsa
+      groups: wheel
+      append: True
     when: "'database' in group_names"
   - name: add patrick
     user:
       name: patrick
       state: present
       uid: 2202
-      ssh_key_file:
+      shell: /bin/bash
+      ssh_key_file: files/id_ecdsa
+      groups: wheel
+      append: True
     when: "'database' in group_names"
