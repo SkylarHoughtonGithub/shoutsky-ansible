@@ -1,0 +1,6 @@
+---
+- hosts: web
+  remote_user: shoughtsky
+  become: True
+  roles:
+   - apache
