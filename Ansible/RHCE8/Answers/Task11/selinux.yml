@@ -1,0 +1,15 @@
+---
+- hosts: web
+  remote_user: shoughtsky
+  become: True
+  tasks:
+   - name: Enable SELinux
+     ansible.posix.selinux:
+      policy: targeted
+      state: enforcing
+
+   - name: set SELinux context on web dir
+     sefcontext:
+      target: '/var/www/html(/.*)?'
+      setype: httpd_can_network_connect
+      state: present

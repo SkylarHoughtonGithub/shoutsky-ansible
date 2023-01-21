@@ -1,0 +1,9 @@
+
+---
+- hosts: web
+  remote_user: shoughtsky
+  become: True
+  tasks:
+   - name: multi-user
+     state: present
+     enabled: True
