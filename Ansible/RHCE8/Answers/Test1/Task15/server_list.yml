@@ -1,0 +1,17 @@
+---
+- hosts: database
+  remote_user: shoughtsky
+  become: True
+  tasks:
+  - name: create server_list.txt from template 
+    template: 
+      src: templates/server_list
+      dest: /etc/server_list.txt
+      owner: shoughtsky
+      group: shoughtsky
+      mode: 600
+
+  - name: set SELinux context on server_list.txt
+    sefcontext:
+      target: /etc/server_list.txt
+      setype: net_conf_t
