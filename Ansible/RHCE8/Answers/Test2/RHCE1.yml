@@ -1,0 +1,5 @@
+---
+- name: RHCE Practice Playbook 1
+  hosts: all
+  remote_user: shoughtsky
+  become: True
