@@ -1,1 +1,1 @@
-database_port=3306
+database_port: 3306

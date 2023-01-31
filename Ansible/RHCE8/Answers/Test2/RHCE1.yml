@@ -1,5 +1,18 @@
 ---
 - name: RHCE Practice Playbook 1
-  hosts: all
+  hosts: localhost
   remote_user: shoughtsky
-  become: True
+  # become: True
+
+  tasks:
+  - name:
+    command:
+      cmd: echo {{ item }}
+    with_items:
+      - Green
+      - Yellow
+      - Purple
+    register: echo
+  - debug:
+      msg: "{{ echo }}"
+      
