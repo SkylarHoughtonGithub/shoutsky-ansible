@@ -2,10 +2,8 @@
 - name: RHCE Practice Playbook 1
   hosts: localhost
   remote_user: shoughtsky
-  # become: True
-
   tasks:
-  - name:
+  - name: Task7/Conditional
     command:
       cmd: echo {{ item }}
     with_items:
@@ -15,4 +13,20 @@
     register: echo
   - debug:
       msg: "{{ echo }}"
+  
+
+- name: RHCE Practice Playbook 1
+  hosts: deadhosts
+  remote_user: shoughtsky
+  gather_facts: false
+  tasks:
+  - name: Task8/Handling Task Failure
+    command:
+      cmd: /usr/bin/true
+    register: task8_output
+    ignore_unreachable: True
+    
+
+
+
       
