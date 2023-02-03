@@ -1,0 +1,56 @@
+---
+ 
+- name: cluster path
+  check_mode: no
+  tags: always
+  file:
+    state: directory
+    path: "{{ output_dir.path }}/tf-cluster"
+
+- name: template cluster
+  check_mode: no
+  tags: always
+  template:
+    src: cluster.yml
+    dest: "{{output_dir.path}}/k8s-cluster.yml"
+
+- name: create cluster
+  environment: &kops-env
+    AWS_ACCESS_KEY_ID: "{{ aws_role_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ aws_role_secret_key }}"
+    AWS_SESSION_TOKEN: "{{ aws_role_session_token }}"
+    KOPS_DEFINITION: "{{output_dir.path}}/k8s-cluster.yml"
+    KOPS_MODULE: "{{output_dir.path}}/tf-cluster"
+  tags:
+    - cluster-create
+  shell: make kops-create
+  register: cluster_output
+
+- name: replace cluster
+  tags:
+    - cluster-update
+  environment: *kops-env
+  shell: make kops-update
+  register: cluster_output
+
+- name: delete cluster
+  tags:
+    - cluster-delete
+  environment: *kops-env
+  shell: make kops-delete
+  register: cluster_output
+
+- name: cluster output
+  tags:
+    - cluster-create
+    - cluster-update
+  debug:
+    var: cluster_output
+
+- name: render terraform
+  check_mode: no
+  tags:
+    - server-create
+    - server-update
+  environment: *kops-env
+  shell: make kops-update-tf

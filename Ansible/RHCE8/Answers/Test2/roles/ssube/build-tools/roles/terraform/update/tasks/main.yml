@@ -1,0 +1,36 @@
+---
+
+- name: terraform root
+  check_mode: no
+  tags: always
+  file:
+    state: directory
+    path: "{{ output_dir.path }}/{{ item }}"
+  with_items:
+    - tf-cluster
+    - tf-root
+
+- name: terraform modules
+  check_mode: no
+  tags: always
+  set_fact:
+    terraform_module: "{{ role_path }}/../../../terraform/modules"
+    terraform_root: "{{ output_dir.path }}/tf-root"
+
+- name: template tf vars
+  tags:
+    - server-create
+    - server-ready
+    - server-update
+  template:
+    src: "{{item}}"
+    dest: "{{ terraform_root }}/{{item}}"
+  with_items:
+    - env.sh
+    - main.tf
+
+- name: print tf env
+  check_mode: no
+  tags: always
+  debug:
+    msg: TF_ENV="{{ terraform_root }}/env.sh"
