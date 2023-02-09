@@ -14,7 +14,7 @@ sudo vim /etc/yum.repos.d/redhat.repo
 # baseurl=http://repo/AppStream
 # gpgcheck=0
 # enabled=1
-
+#
 # Across all managed nodes
 sudo bash -c "adduser shoughtsky ; usermod -aG wheel shoughtsky"
 vagrant ssh repo password | passwd --stdin
