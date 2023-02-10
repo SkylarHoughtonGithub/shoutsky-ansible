@@ -10,3 +10,5 @@ do
   ansible_hostname=$(ansible $i -i [[Ansible Master Inventory File]] -a 'hostname')
   echo " $i,$ansible_hostname" >> [[home directory of running user]]/hostnames.csv
 done
+
+exit
