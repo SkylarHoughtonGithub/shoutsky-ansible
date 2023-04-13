@@ -1,0 +1,19 @@
+---
+# tasks file for nginx
+- name: Install EPEL repository
+  ansible.builtin.dnf:
+    name: epel-release
+    state: present
+
+- name: Install Nginx package
+  ansible.builtin.dnf:
+    name: nginx
+    state: present
+
+    - name: Start Nginx service
+      systemd:
+        name: nginx
+        state: started
+        enabled: true
+
+

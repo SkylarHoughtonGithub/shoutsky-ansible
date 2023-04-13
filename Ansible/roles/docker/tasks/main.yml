@@ -1,0 +1,29 @@
+---
+# tasks file for docker
+- name: Install required packages
+  ansible.builtin.dnf:
+    name:
+      - dnf-plugins-core
+      - container-selinux
+      - yum-utils
+      - device-mapper-persistent-data
+    state: present
+
+- name: Add repository
+  ansible.builtin.yum_repository:
+    name: docker-ce-stable
+    description: docker-ce-stable
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    gpgkey: https://download.docker.com/linux/centos/gpg
+    state: present
+
+- name: Install Docker package
+  ansible.builtin.dnf:
+    name: docker-ce
+    state: present
+
+- name: Start Docker service
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: yes

@@ -1,0 +1,29 @@
+- name: Install httpd deps
+  ansible.builtin.yum:
+    name:
+      - httpd
+      - mod_ssl
+      - php
+    state: present
+
+- name: Start/enable httpd
+  ansible.builtin.service:
+    name: httpd
+    state: started
+    enabled: true
+
+- name: Open firewalld
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    permanent: true
+    state: enabled
+  with_items:
+    - http
+    - https
+
+- name: Configure httpd
+  ansible.builtin.template:
+    src: template/index.html.j2
+    dest: /var/www/html/index.html
+    mode: 0755
+  notify: restart httpd
