@@ -12,9 +12,10 @@ scrape_configs:
   follow_redirects: true
   enable_http2: true
   static_configs:
-  - targets: ['localhost:9090']
+  - targets: ['10.5.0.6:9090']
 
-  dns_sd_configs:
-  - names:
-    - google.com
-    type: A
+- job_name: "node"
+  scrape_interval: 10s
+  static_configs:
+  - targets: ["10.5.0.7:9100"]
+                                   

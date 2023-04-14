@@ -1,0 +1,50 @@
+version: “3.3”
+
+services:
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+    - 3000:3000
+    networks:
+      network:
+        ipv4_address: 10.5.0.5
+
+  prom:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+    - 9090:9090
+    volumes:
+    - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      network:
+        ipv4_address: 10.5.0.6
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+    - 9100:9100
+    networks:
+      network:
+        ipv4_address: 10.5.0.7
+
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+    - 9100:9100
+    networks:
+      network:
+        ipv4_address: 10.5.0.8
+
+networks:
+  network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
