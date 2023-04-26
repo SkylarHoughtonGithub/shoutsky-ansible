@@ -1,7 +1,17 @@
 version: “3.3”
 
 services:
-
+  dns:
+    image: coredns/coredns
+    container_name: coredns
+    ports:
+    - 53:53
+    volumes:
+    - ./CoreDNS/config/Corefile:/root/Corefile
+    networks:
+      network:
+        ipv4_address: 10.5.0.2
+    
   grafana:
     image: grafana/grafana
     container_name: grafana
@@ -17,7 +27,7 @@ services:
     ports:
     - 9090:9090
     volumes:
-    - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+    - ./Prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       network:
         ipv4_address: 10.5.0.6
@@ -30,16 +40,6 @@ services:
     networks:
       network:
         ipv4_address: 10.5.0.7
-
-
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    ports:
-    - 9100:9100
-    networks:
-      network:
-        ipv4_address: 10.5.0.8
 
 networks:
   network:
