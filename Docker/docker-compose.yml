@@ -11,7 +11,16 @@ services:
     networks:
       network:
         ipv4_address: 10.5.0.2
-    
+
+  vault:
+    build:
+      context: .
+      dockerfile: ./HashiVault/Dockerfile
+    container_name: vault
+    environment:
+    - VAULT_ADDR=http://127.0.0.1:8200
+    - VAULT_API_ADDR=http://127.0.0.1:8200
+      
   grafana:
     image: grafana/grafana
     container_name: grafana
