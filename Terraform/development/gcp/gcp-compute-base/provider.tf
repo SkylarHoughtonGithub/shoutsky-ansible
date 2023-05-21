@@ -1,5 +1,4 @@
 # gcloud auth application-default login
-# gcloud auth application-default login
 terraform {
   backend "gcs" {
     bucket = "shoutsky-state"

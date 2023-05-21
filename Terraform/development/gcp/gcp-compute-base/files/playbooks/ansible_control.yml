@@ -1,0 +1,44 @@
+---
+- name: Bootstrap VM
+  hosts: all
+  gather_facts: true
+  tasks:
+  - name: install requied packages
+    dnf:
+      name: "{{ item }}"
+      state: present
+    with_items:
+    - ansible
+    - python-pip
+
+  - name: Install Python packages
+    pip:
+      name:
+      - google-auth
+      - google-auth-httplib2
+      - google-auth-oauthlib2
+      - google-api-python-client
+      - requests
+      - requests_oathlib
+      - google-cloud-sdk
+
+  - name: Create Ansible Inventory Directory
+    file:
+      path: /etc/ansible/inventory
+      state: directory
+      mode: '0775'
+    with_items:
+    - /etc/ansible    
+    - /etc/ansible/inventory
+    - /etc/ansible/playbooks
+
+  - name: create ansible configuration file
+    copy:
+      content: |
+        [defaults]
+        inventory = /etc/ansible/inventory/hosts
+        host_key_checking = False
+        forks = 50
+      dest: /etc/ansible/ansible.cfg
+      mode: '0664'
+
