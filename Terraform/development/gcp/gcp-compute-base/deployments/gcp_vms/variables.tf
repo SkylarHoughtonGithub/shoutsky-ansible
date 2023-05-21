@@ -9,6 +9,8 @@ variable "vms" {
   type = map(object({
     machine_type = string
     disk_size_gb = number
+    vpc = string
+    subnet = string
     image        = string
     tags         = list(string)
   }))
@@ -16,7 +18,9 @@ variable "vms" {
   default = {
     "ansible-control" = {
       machine_type = "e2-small"
-      disk_size_gb = 2
+      disk_size_gb = 20
+      vpc = "homelab-network"
+      subnet = "homelab-subnet"
       image        = "homelab-369103/gcp-rocky9-base"
       tags         = ["web", "ssh", "default"]
     }
@@ -24,6 +28,8 @@ variable "vms" {
     "ansible-node1" = {
       machine_type = "e2-small"
       disk_size_gb = 20
+      vpc = "homelab-network"
+      subnet = "homelab-subnet"
       image        = "homelab-369103/gcp-rocky9-base"
       tags         = ["web", "ssh", "default"]
     }
@@ -31,6 +37,8 @@ variable "vms" {
     "ansible-node2" = {
       machine_type = "e2-small"
       disk_size_gb = 20
+      vpc = "homelab-network"
+      subnet = "homelab-subnet"
       image        = "homelab-369103/gcp-rocky9-base"
       tags         = ["web", "ssh", "default"]
     }
