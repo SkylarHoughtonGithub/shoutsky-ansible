@@ -1,0 +1,16 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    pip_install_packages:
+      - name: docker
+    gitlab_external_url: https://mysite
+    gitlab_http_enabled: true
+    gitlab_https_enabled: false
+    gitlab_additional_config:
+      - "gitlab_rails['smtp_enable'] = false"
+  roles:
+    - geerlingguy.pip
+    - geerlingguy.docker
+    - ansible-role-gitlab

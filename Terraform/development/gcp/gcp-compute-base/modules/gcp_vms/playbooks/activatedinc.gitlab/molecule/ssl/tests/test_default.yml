@@ -1,0 +1,38 @@
+# Molecule managed
+
+---
+command:
+  cat /proc/sys/fs/file-max:
+    exit-status: 0
+    stdout:
+      - 1000000
+user:
+  gitlab:
+    exists: true
+file:
+{{- range mkSlice "logs" "data" }}
+  /var/lib/gitlab/{{.}}:
+    exists: true
+    filetype: directory
+    mode: "0755"
+{{end}}
+{{- range mkSlice "config" }}
+  /var/lib/gitlab/{{.}}:
+    exists: true
+    filetype: directory
+    mode: "0775"
+{{end}}
+  /var/lib/gitlab/config/gitlab.rb:
+    exists: true
+    filetype: file
+    mode: "0644"
+    contains:
+      - 'external_url "https://localhost"'
+http:
+  http://localhost:8443:
+    status: 400
+  https://localhost:8443:
+    status: 302
+    no-follow-redirects: true
+    body:
+      - "redirected"

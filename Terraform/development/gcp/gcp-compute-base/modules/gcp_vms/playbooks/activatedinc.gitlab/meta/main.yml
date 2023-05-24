@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: gitlab
+  author: btomasini
+  description: Gitlab in Docker
+  company: Activated, Inc.
+  license: MIT
+  min_ansible_version: 2.4
+  galaxy_tags: [ gitlab ]
+  platforms:
+    - name: Ubuntu
+      versions:
+        - xenial
+dependencies: []

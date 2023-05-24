@@ -17,7 +17,7 @@ variable "vms" {
 
   default = {
     "ansible-control" = {
-      machine_type = "e2-small"
+      machine_type = "e2-medium"
       disk_size_gb = 20
       vpc          = "homelab-network"
       subnet       = "homelab-subnet"

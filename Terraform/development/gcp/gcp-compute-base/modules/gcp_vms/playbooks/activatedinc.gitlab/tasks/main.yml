@@ -1,0 +1,64 @@
+---
+# tasks file for ansible-activated-gitlab
+#
+- name: Create gitlab user
+  user:
+    name: "{{ gitlab_user }}"
+    state: present
+- name: Modify file-max
+  sysctl:
+    name: fs.file-max
+    value: 1000000
+    state: present
+  notify: restart_gitlab_container
+- name: Create gitlab data paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0775
+  with_items:
+    - "{{ gitlab_data_path }}"
+    - "{{ gitlab_logs_path }}"
+    - "{{ gitlab_config_path }}"
+  notify: restart_gitlab_container
+- name: Create gitlab configuration
+  template:
+    src: gitlab.rb.j2
+    dest: "{{ gitlab_config_path }}/gitlab.rb"
+    mode: 0644
+  notify: restart_gitlab_container
+- name: Empty list of port mappings
+  set_fact:
+    gitlab_ports: []
+- name: Append http port mapping
+  set_fact:
+    gitlab_ports: "{{ gitlab_ports }} + [ '{{ gitlab_http_host_port }}:80' ]"
+  when: gitlab_http_enabled
+- name: Append https port mapping
+  set_fact:
+    gitlab_ports: "{{ gitlab_ports }} + [ '{{ gitlab_https_host_port }}:443' ]"
+  when: gitlab_https_enabled
+- name: Append ssh port mapping
+  set_fact:
+    gitlab_ports: "{{ gitlab_ports }} + [ '{{ gitlab_ssh_host_port }}:22' ]"
+  when: gitlab_ssh_enabled
+- name: Run gitlab container
+  docker_container:
+    name: gitlab
+    image: "{{ gitlab_docker_image }}"
+    restart_policy: unless-stopped
+    # TODO - We should remove this and fix the actual ulimit issue
+    privileged: true
+    sysctls:
+      net.core.somaxconn: 1024
+    ulimits:
+      - sigpending:62793
+      - nproc:131072
+      - nofile:60000
+      - core:0
+    published_ports: "{{ gitlab_ports }}"
+    volumes:
+      - "{{ gitlab_config_path }}:/etc/gitlab"
+      - "{{ gitlab_logs_path }}:/var/log/gitlab"
+      - "{{ gitlab_data_path }}:/var/opt/gitlab"
+      - "{{ gitlab_ssl_path }}:/etc/ssl"

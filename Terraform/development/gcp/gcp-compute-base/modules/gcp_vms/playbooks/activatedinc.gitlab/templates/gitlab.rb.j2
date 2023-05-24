@@ -1,0 +1,13 @@
+external_url "{{ gitlab_external_url }}"
+{% if gitlab_http_enabled and not gitlab_https_enabled %}
+nginx['listen_https'] = false
+nginx['listen_port'] = 80
+{% endif %}
+{% if gitlab_https_enabled %}
+nginx['ssl_certificate'] = "/etc/ssl{{ gitlab_ssl_cert_path }}"
+nginx['ssl_certificate_key'] = "/etc/ssl{{ gitlab_ssl_key_path }}"
+{% endif %}
+
+{% for line in gitlab_additional_config %}
+{{ line }}
+{% endfor %}

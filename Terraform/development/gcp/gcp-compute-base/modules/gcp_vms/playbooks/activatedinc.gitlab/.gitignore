@@ -1,0 +1,6 @@
+.molecule
+__pycache__
+*.pyc
+*.log
+.cache
+.srl

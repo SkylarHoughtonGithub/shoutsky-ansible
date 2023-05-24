@@ -9,6 +9,7 @@ sudo su - ansible
 
 sudo mkdir -p /etc/ansible/inventory
 sudo mkdir -p /etc/ansible/playbooks
+sudo mkdir -p /etc/ansible/roles
 sudo ansible-config init >> /etc/ansible/ansible.cfg
 
 sudo sed -i 's/^inventory*/inventory=/etc/ansible/inventory/hosts' /etc/ansible/ansible.cfg
@@ -25,6 +26,10 @@ sudo echo "[node]" >> /etc/ansible/inventory/hosts
 sudo secho "0.0.0.0 ansible_host=ansible-node1" >> /etc/ansible/inventory/hosts
 sudo secho "0.0.0.1 ansible_host=ansible-node2" >> /etc/ansible/inventory/hosts
 
+ansible-galaxy role search "gitlab"
+ansible-galaxy role install -p ./ activatedinc.gitlab
+ansible-galaxy role install -p ./ geerlingguy.haproxy
+git clone https://github.com/milesbarry/rhel-repo-sync.git
 
 ssh-keygen
 ssh-copy-id ansible@ansible-node1
