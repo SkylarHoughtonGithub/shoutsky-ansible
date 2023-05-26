@@ -1,0 +1,25 @@
+---
+- name: Setup Repo
+  hosts: localhost
+  gather_facts: true
+  become: true
+  tasks:
+  - yum_repository:
+      name: self-appstream
+      state: absent
+
+  - yum_repository:
+      name: self-appstream
+      description: self-appstream
+      baseurl: ftp://34.31.7.100/repo/AppStream
+
+  - yum_repository:
+      name: self-baseos
+      description: self-baseos
+      baseurl: ftp://34.31.7.100/repo/BaseOS
+
+  - command: yum repolist
+    register: yum
+
+  - debug:
+      msg: "{{ yum }}"

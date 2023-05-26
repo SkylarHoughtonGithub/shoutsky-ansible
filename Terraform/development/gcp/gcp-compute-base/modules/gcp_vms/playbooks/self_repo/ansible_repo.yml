@@ -1,0 +1,30 @@
+---
+- name: Setup Repo
+  hosts: localhost
+  gather_facts: true
+  become: true
+  tasks:
+  - file:
+      path: /var/ftp/repo
+      state: directory
+      mode: '0755'
+
+  - dnf:
+      name:
+      - vsftpd
+      - yum-utils
+      state: present
+
+
+  - service:
+      name: vsftpd
+
+      state: started
+      enabled: yes
+
+  - get_url:
+      url: https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-x86_64-minimal.iso
+      dest: ~/
+
+  - command: mount -t iso9660 /root/Rocky-x86_64-minimal.iso /var/ftp/repo/
+

@@ -1,5 +1,5 @@
 ---
-- name: Bootstrap VM
+- name: Bootstrap Control Node
   hosts: control
   gather_facts: true
   become: true
