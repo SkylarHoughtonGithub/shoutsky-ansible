@@ -1,25 +1,42 @@
 ---
 - name: Setup Repo
-  hosts: localhost
+  hosts: node
   gather_facts: true
   become: true
   tasks:
   - yum_repository:
-      name: self-appstream
+      name: "{{ item }}"
       state: absent
+    with_items:
+    - appstream
+    - baseos
+    - local-appstream
+    - local-baseos
 
   - yum_repository:
       name: self-appstream
+      file: self-repo
       description: self-appstream
-      baseurl: ftp://34.31.7.100/repo/AppStream
+      baseurl: ftp://34.27.41.182/repo/AppStream
+      metalink: ftp//34.27.41.182/repo/AppStream/repodata/repomd.xml
+      enabled: yes
 
   - yum_repository:
       name: self-baseos
+      file: self-repo
       description: self-baseos
-      baseurl: ftp://34.31.7.100/repo/BaseOS
+      baseurl: ftp://34.27.41.182/repo/BaseOS
+      metalink: ftp://34.27.41.182/repo/BaseOS/repodata/repomd.xml
+      enabled: yes
 
   - command: yum repolist
     register: yum
 
   - debug:
       msg: "{{ yum }}"
+
+  - command: yum update -y
+    register: yum_update
+
+  - debug:
+      msg: "{{ yum_update }}"

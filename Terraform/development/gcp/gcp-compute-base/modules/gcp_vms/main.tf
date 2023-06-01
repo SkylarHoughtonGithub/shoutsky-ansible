@@ -9,7 +9,7 @@ resource "google_compute_instance" "vm_instance" {
     }
   }
   network_interface {
-    network = var.vms[keys(var.vms)[count.index]].vpc
+    network    = var.vms[keys(var.vms)[count.index]].vpc
     subnetwork = var.vms[keys(var.vms)[count.index]].subnet
     access_config {}
   }

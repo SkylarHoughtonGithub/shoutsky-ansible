@@ -1,7 +1,7 @@
 [control]
 ansible-control ansible_host=localhost ansible_connection=local
-# 34.31.7.100
+# 34.27.41.182
 
 [node]
-ansible-node1 ansible_host=34.69.249.154
-ansible-node2 ansible_host=35.239.36.87
+ansible-node1 ansible_host=10.0.10.30
+ansible-node2 ansible_host=10.0.10.31

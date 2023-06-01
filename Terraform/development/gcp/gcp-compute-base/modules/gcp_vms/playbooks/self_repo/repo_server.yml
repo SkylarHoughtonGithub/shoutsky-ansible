@@ -3,17 +3,18 @@
   hosts: localhost
   gather_facts: true
   become: true
+  remote_user: ansible
   tasks:
   - file:
       path: /var/ftp/repo
       state: directory
       mode: '0755'
 
-  - dnf:
-      name:
-      - vsftpd
-      - yum-utils
-      state: present
+#   - dnf:
+#       name:
+#       - vsftpd
+#       - yum-utils
+#       state: present
 
 
   - service:
@@ -22,9 +23,9 @@
       state: started
       enabled: yes
 
-  - get_url:
-      url: https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-x86_64-minimal.iso
-      dest: ~/
+#   - get_url:
+#       url: https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-x86_64-minimal.iso
+#       dest: /mnt
 
-  - command: mount -t iso9660 /root/Rocky-x86_64-minimal.iso /var/ftp/repo/
+  - command: mount -t iso9660 -o loop /mnt/Rocky-x86_64-minimal.iso /var/ftp/repo/
 

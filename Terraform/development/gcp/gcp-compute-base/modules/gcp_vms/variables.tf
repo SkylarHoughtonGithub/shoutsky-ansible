@@ -5,7 +5,7 @@ variable "vms" {
     disk_size_gb = number
     image        = string
     tags         = list(string)
-    vpc = string
-    subnet = string
+    vpc          = string
+    subnet       = string
   }))
 }
