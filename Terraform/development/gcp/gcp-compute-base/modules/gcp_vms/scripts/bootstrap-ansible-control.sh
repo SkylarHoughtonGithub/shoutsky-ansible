@@ -8,7 +8,7 @@ sudo systemctl restart sshd
 
 #Run on Control Node
 sudo su - ansible
-sudo dnf install -y pip
+sudo dnf install -y pip sshpass
 pip3 install ansible
 ssh-keygen
 ssh-copy-id ansible@ansible-node1

@@ -2,6 +2,8 @@
 - name: Setup Repo
   hosts: node
   gather_facts: true
+  remote_user: ansible
+  become_user: ansible
   become: true
   tasks:
   - yum_repository:
@@ -10,23 +12,31 @@
     with_items:
     - appstream
     - baseos
-    - local-appstream
-    - local-baseos
+    - self-appstream
+    - self-baseos
+
+  - file:
+      path: /etc/yum.repos.d/self-AppStream.repo
+      state: touch
+    become: true
+
+  - file:
+      path: /etc/yum.repos.d/self-BaseOS.repo
+      state: touch
+    become: true
 
   - yum_repository:
-      name: self-appstream
-      file: self-repo
-      description: self-appstream
-      baseurl: ftp://34.27.41.182/repo/AppStream
-      metalink: ftp//34.27.41.182/repo/AppStream/repodata/repomd.xml
+      name: self-AppStream
+      file: self-AppStream.repo
+      description: self-AppStream
+      baseurl: ftp://ansible-control/repo/appstream
       enabled: yes
 
   - yum_repository:
-      name: self-baseos
-      file: self-repo
-      description: self-baseos
-      baseurl: ftp://34.27.41.182/repo/BaseOS
-      metalink: ftp://34.27.41.182/repo/BaseOS/repodata/repomd.xml
+      name: self-BaseOS
+      file: self-BaseOS
+      description: self-BaseOS
+      baseurl: ftp://self-control/repo/baseos
       enabled: yes
 
   - command: yum repolist
@@ -34,9 +44,9 @@
 
   - debug:
       msg: "{{ yum }}"
-
-  - command: yum update -y
-    register: yum_update
+  
+  - command: curl ftp://ansible-control/repo/baseos/repodata/
+    register: baseos_curl
 
   - debug:
-      msg: "{{ yum_update }}"
+      msg: "{{ baseos_curl }}"

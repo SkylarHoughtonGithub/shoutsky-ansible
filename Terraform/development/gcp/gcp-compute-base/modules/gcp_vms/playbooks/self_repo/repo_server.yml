@@ -10,11 +10,11 @@
       state: directory
       mode: '0755'
 
-#   - dnf:
-#       name:
-#       - vsftpd
-#       - yum-utils
-#       state: present
+  - dnf:
+      name:
+      - vsftpd
+      - yum-utils
+      state: present
 
 
   - service:
@@ -23,9 +23,8 @@
       state: started
       enabled: yes
 
-#   - get_url:
-#       url: https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-x86_64-minimal.iso
-#       dest: /mnt
+  - command: reposync -p /var/ftp/repo --download-metadata --repoid=baseos
+    
+  - command: reposync -p /var/ftp/repo --download-metadata --repoid=appstream
 
-  - command: mount -t iso9660 -o loop /mnt/Rocky-x86_64-minimal.iso /var/ftp/repo/
-
+#TODO: add anonymous access to /etc/vsftpd/vsftpd.conf
