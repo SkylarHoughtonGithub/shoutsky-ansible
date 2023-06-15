@@ -27,4 +27,10 @@
     
   - command: reposync -p /var/ftp/repo --download-metadata --repoid=appstream
 
-#TODO: add anonymous access to /etc/vsftpd/vsftpd.conf
+  - lineinfile:
+      path: /etc/vsftpd/vsftpd.conf
+      regexp: '^anonymous_enable'
+      line: anonymous_enable=YES
+      state: present
+
+  - command: systemctl restart vsftpd
