@@ -1,0 +1,20 @@
+---
+- hosts: all
+  remote_user: shoughtsky
+  become: True
+  tasks:
+   - name: Install yum deps on proxy group
+     yum:
+       name: 
+        - tcpdump
+        - mailx
+       state: present
+     when: "'proxy' in group_names"
+     
+   - name: Install yum deps on database group
+     yum:
+       name:
+        - lsof
+        - mailx
+       state: present
+    when: "'database' in group_names"

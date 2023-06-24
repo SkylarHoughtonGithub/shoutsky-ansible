@@ -1,0 +1,36 @@
+---
+- name: Setup Repo
+  hosts: localhost
+  gather_facts: true
+  become: true
+  remote_user: ansible
+  tasks:
+  - file:
+      path: /var/ftp/repo
+      state: directory
+      mode: '0755'
+
+  - dnf:
+      name:
+      - vsftpd
+      - yum-utils
+      state: present
+
+
+  - service:
+      name: vsftpd
+
+      state: started
+      enabled: yes
+
+  - command: reposync -p /var/ftp/repo --download-metadata --repoid=baseos
+    
+  - command: reposync -p /var/ftp/repo --download-metadata --repoid=appstream
+
+  - lineinfile:
+      path: /etc/vsftpd/vsftpd.conf
+      regexp: '^anonymous_enable'
+      line: anonymous_enable=YES
+      state: present
+
+  - command: systemctl restart vsftpd

@@ -1,0 +1,5 @@
+- hosts: database
+  remote_user: shoughtsky
+  become: True
+  roles:
+  - mysql

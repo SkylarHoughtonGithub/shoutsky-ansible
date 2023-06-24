@@ -1,0 +1,24 @@
+---
+- hosts: all
+  gather_facts: true
+  remote_user: ansible
+  become_user: ansible
+  tasks:
+
+  - package_facts:
+  - service_facts:
+  
+  - debug:
+      msg:
+      - "ipv4: {{ ansible_default_ipv4.address }}"
+      -
+      - "sda1: {{ ansible_devices.sda.partitions.sda1.size }}"
+      - "sda2: {{ ansible_devices.sda.partitions.sda2.size }}"
+      - 
+      - "packages"
+      -
+      - "linux-firmware: {{ ansible_facts.packages['linux-firmware'] }}"
+      -
+      - "services {{ ansible_facts.servicesauditd.service }}"
+    
+

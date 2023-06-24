@@ -1,0 +1,3 @@
+---
+- name: local.haproxy
+  src: ftp://10.0.10.39/roles/geerlingguy.haproxy.tar

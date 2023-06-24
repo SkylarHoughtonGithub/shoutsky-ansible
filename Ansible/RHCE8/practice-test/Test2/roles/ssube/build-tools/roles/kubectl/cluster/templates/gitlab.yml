@@ -1,0 +1,181 @@
+---
+
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: gitlab
+spec:
+  selector:
+    matchLabels:
+      k8s-app: gitlab
+  serviceName: gitlab
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: gitlab
+        k8s-svc: gitlab
+      annotations:
+        iam.amazonaws.com/role: "arn:aws:iam::{{ secrets.tags.account }}:role/{{ secrets.tags.project }}-gitlab-server"
+
+    spec:
+      containers:
+      - name: gitlab
+        image: "gitlab/gitlab-{{ build_tools_gitlab.edition }}:{{ build_tools_gitlab.version }}-{{ build_tools_gitlab.edition }}.0"
+
+        # ports
+        ports:
+        - containerPort: 22
+          name: ssh
+        - containerPort: 80
+          name: http
+
+        # probes
+        livenessProbe:
+          httpGet:
+            path: /-/liveness
+            port: http
+          initialDelaySeconds: 180
+          periodSeconds: 90
+        readinessProbe:
+          httpGet:
+            path: /-/readiness
+            port: http
+          initialDelaySeconds: 180
+          periodSeconds: 90
+
+        # volumes
+        volumeMounts: &gitlab_volumes
+          - name: cluster-scripts
+            mountPath: /scripts
+{% for name in build_tools_gitlab.assets.keys() | list %}
+{% set body = build_tools_gitlab.assets[name].path %}
+          - name: gitlab-assets
+            mountPath: /assets/{{ body | default(name)}}
+            subPath: {{ name }}
+{% endfor %}
+          - name: gitlab-config
+            mountPath: /config
+          - name: gitlab-data
+            mountPath: /data
+          - name: gitlab-etc
+            mountPath: /etc/gitlab
+            readOnly: false
+
+      # init
+      initContainers:
+      - name: gitlab-init
+        image: "apextoaster/kube:master"
+
+        command:
+          - /bin/bash
+        args:
+          - -c
+          - "/scripts/gitlab-init.sh {{ secrets.gitlab.data }}"
+        volumeMounts: *gitlab_volumes
+
+      nodeSelector:
+        cluster: server
+
+      terminationGracePeriodSeconds: 60
+      volumes:
+        # cluster scripts dir
+        - name: cluster-scripts
+          configMap:
+            name: cluster-scripts
+            defaultMode: 0755
+        # gitlab assets dir
+        - name: gitlab-assets
+          secret:
+            secretName: gitlab-assets
+            items:
+{% for name in build_tools_gitlab.assets.keys() | list %}
+{% set body = build_tools_gitlab.assets[name] %}
+              - key: {{ name }}
+                mode: {{ body.mode }}
+                path: {{ body.path | default(name) }}
+{% endfor %}
+        # gitlab config and secrets
+        - name: gitlab-config
+          secret:
+            secretName: gitlab-config
+            items:
+{% for name in build_tools_gitlab.config.keys() | list %}
+{% set body = build_tools_gitlab.config[name] %}
+              - key: {{name}}
+                mode: {{body.mode}}
+                path: {{body.path | default(name)}}
+{% endfor %}
+
+  volumeClaimTemplates:
+    - metadata:
+        name: gitlab-etc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 4Gi
+
+    - metadata:
+        name: gitlab-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ build_tools_gitlab.disk }}Gi
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: gitlab
+  labels:
+    k8s-app: gitlab
+    dns: route53
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "git.{{ secrets.tags.project}}.{{ secrets.dns.base }}."
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:{{ secrets.region.primary }}:{{ secrets.tags.account }}:certificate/{{ secrets.gitlab.cert }}"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: https
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+spec:
+  ports:
+    - name: ssh
+      protocol: TCP
+      port: 22
+      targetPort: ssh
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: http
+  selector:
+    k8s-svc: gitlab
+  type: LoadBalancer
+
+---
+
+kind: Secret
+apiVersion: v1
+metadata:
+  name: gitlab-config
+type: Opaque
+data:
+{% for name in build_tools_gitlab.config.keys() | list %}
+{% set body = build_tools_gitlab.config[name] %}
+  {{ name }}: {{ body.value }}
+{% endfor %}
+
+---
+
+kind: Secret
+apiVersion: v1
+metadata:
+  name: gitlab-assets
+type: Opaque
+data:
+{% for name in build_tools_gitlab.assets.keys() | list %}
+{% set body = build_tools_gitlab.assets[name] %}
+  {{ name }}: {{ body.value }}
+{% endfor %}

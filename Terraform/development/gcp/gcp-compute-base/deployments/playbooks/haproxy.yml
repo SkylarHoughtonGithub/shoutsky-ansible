@@ -1,0 +1,7 @@
+---
+- name: install haproxy
+  hosts: node
+  become: true
+  remote_user: ansible
+  roles:
+  - geerlingguy.haproxy

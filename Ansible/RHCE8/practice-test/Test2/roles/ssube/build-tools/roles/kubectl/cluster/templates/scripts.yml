@@ -1,0 +1,10 @@
+---
+
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: cluster-scripts
+data:
+{% for file in script_files.results %}
+  {{ file.item.path | basename }}: {{ file.ansible_facts.script_body | tojson }}
+{% endfor %}

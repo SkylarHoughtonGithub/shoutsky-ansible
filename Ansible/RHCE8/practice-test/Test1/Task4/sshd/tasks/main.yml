@@ -1,0 +1,19 @@
+---
+# tasks file for sshd
+- name: Set SSH Banner on sshd
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^Banner'
+    line: 'Banner /etc/motd'
+
+- name: Set X11 Forwarding on sshd
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^X11Forwarding'
+    line: 'X11Forwarding disabled'
+
+- name: Set Max Retry Attempts on sshd
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^MaxAuthTries'
+    line: 'MaxAuthTries 3'

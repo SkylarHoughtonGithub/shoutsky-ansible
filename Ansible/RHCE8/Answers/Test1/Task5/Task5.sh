@@ -1,1 +1,0 @@
-sudo /usr/local/bin/ansible-vault encrypt secret.yml --vault-password-file vault_key

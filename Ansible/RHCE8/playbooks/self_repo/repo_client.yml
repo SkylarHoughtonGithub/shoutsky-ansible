@@ -1,0 +1,52 @@
+---
+- name: Setup Repo
+  hosts: node
+  gather_facts: true
+  remote_user: ansible
+  become_user: ansible
+  become: true
+  tasks:
+  - yum_repository:
+      name: "{{ item }}"
+      state: absent
+    with_items:
+    - appstream
+    - baseos
+    - self-appstream
+    - self-baseos
+
+  - file:
+      path: /etc/yum.repos.d/self-AppStream.repo
+      state: touch
+    become: true
+
+  - file:
+      path: /etc/yum.repos.d/self-BaseOS.repo
+      state: touch
+    become: true
+
+  - yum_repository:
+      name: self-AppStream
+      file: self-AppStream.repo
+      description: self-AppStream
+      baseurl: ftp://ansible-control/repo/appstream
+      enabled: yes
+
+  - yum_repository:
+      name: self-BaseOS
+      file: self-BaseOS
+      description: self-BaseOS
+      baseurl: ftp://self-control/repo/baseos
+      enabled: yes
+
+  - command: yum repolist
+    register: yum
+
+  - debug:
+      msg: "{{ yum }}"
+  
+  - command: curl ftp://ansible-control/repo/baseos/repodata/
+    register: baseos_curl
+
+  - debug:
+      msg: "{{ baseos_curl }}"

@@ -1,0 +1,193 @@
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitlab-jobs
+  labels:
+    k8s-app: gitlab-runner
+  annotations:
+    iam.amazonaws.com/allowed-roles: |
+      [
+        "arn:aws:iam::{{ secrets.tags.account }}:role/{{ secrets.tags.project }}-gitlab-job"
+      ]
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gitlab-runner
+  labels:
+    k8s-app: gitlab-runner
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitlab-runner-jobs
+  namespace: gitlab-jobs
+  labels:
+    rbac.{{ build_tools_cluster.name }}/gitlab-runner-role: "true"
+    k8s-app: gitlab-runner
+
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/exec"]
+    verbs: ["create", "delete", "get", "list", "watch"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitlab-runner-default
+  namespace: default
+  labels:
+    rbac.{{ build_tools_cluster.name }}/gitlab-runner-role: "true"
+    k8s-app: gitlab-runner
+
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitlab-runner
+  labels:
+    k8s-app: gitlab-runner
+
+aggregationRule:
+  clusterRoleSelectors:
+    - matchLabels:
+        rbac.{{ build_tools_cluster.name }}/gitlab-runner-role: "true"
+rules: []
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gitlab-runner
+  labels:
+    k8s-app: gitlab-runner
+
+subjects:
+  - kind: ServiceAccount
+    name: gitlab-runner
+    namespace: default
+
+roleRef:
+  kind: ClusterRole
+  name: gitlab-runner
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitlab-runner-config
+  labels:
+    k8s-app: gitlab-runner
+
+type: Opaque
+data:
+{% for name in build_tools_gitlab.runner.config.keys() | list %}
+{% set body = build_tools_gitlab.runner.config[name] %}
+  {{ name }}: {{ body.value | b64encode }}
+{% endfor %}
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitlab-runner-data
+  labels:
+    k8s-app: gitlab-runner
+
+type: Opaque
+data:
+  tags: {{ runner_tags | b64encode }}
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitlab-runner-secrets
+  namespace: gitlab-jobs
+  labels:
+    k8s-app: gitlab-runner
+
+type: Opaque
+data:
+{% for name in build_tools_gitlab.runner.secrets.keys() | list %}
+{% set body = build_tools_gitlab.runner.secrets[name] %}
+  {{ name }}: {{ body.value | b64encode }}
+{% endfor %}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab-runner
+  labels:
+    k8s-app: gitlab-runner
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: gitlab-runner
+
+  template:
+    metadata:
+      labels:
+        k8s-app: gitlab-runner
+      annotations:
+        "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+        "iam.amazonaws.com/role": "arn:aws:iam::{{ secrets.tags.account }}:role/{{ secrets.tags.project }}-gitlab-runner"
+
+    spec:
+      containers:
+        - name: gitlab-runner
+          image: "gitlab/gitlab-runner:v{{ build_tools_gitlab.runner.version }}"
+          imagePullPolicy: "Always"
+          command:
+            - bash
+          args:
+            - -c
+            - /config/setup.sh
+          resources:
+            limits:
+              cpu: 100m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+      nodeSelector:
+        cluster: server
+      serviceAccountName: gitlab-runner
+      volumes:
+        - name: config
+          secret:
+            secretName: gitlab-runner-config
+            items:
+{% for name in build_tools_gitlab.runner.config.keys() | list %}
+{% set body = build_tools_gitlab.runner.config[name] %}
+              - key: {{ name }}
+                mode: {{ body.mode }}
+                path: {{ body.path | default(name) }}
+{% endfor %}
