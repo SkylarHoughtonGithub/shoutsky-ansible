@@ -1,0 +1,34 @@
+---
+- name: Ensure disk2 is provisioned
+  hosts: all
+  remote_user: shoutsky
+  become: true
+  tasks:
+  - block: 
+    - name: assert that a second disk exists
+      ansible.builtin.assert:
+        that:
+        - "{{ hostvars['localhost'].ansible_devices.sdb }}"
+        fail_msg: "disk 2 does not exist."
+        success_msg: "disk 2 exists, proceeding..."
+
+    - name: attempt to add filesystem to disk2/part1
+      community.general.filesystem:
+        dev: /dev/sdb1
+        fstype: xfs
+        state: present
+
+    rescue:
+    - name: attempt to partition disk 2
+      ansible.buitin.parted:
+        device: /dev/sdb
+        number: 1
+        state: present
+        fs_type: xfs
+
+    always:
+    - name: attempt to add filesystem to disk2/part1
+      community.general.filesystem:
+        dev: /dev/sdb1
+        fstype: xfs
+        state: present
