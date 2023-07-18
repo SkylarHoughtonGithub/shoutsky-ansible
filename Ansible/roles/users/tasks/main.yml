@@ -1,0 +1,21 @@
+---
+- name: add groups
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+  become: true
+  loop: "{{ sudo_groups }}"
+
+- name: add users
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    groups: "{{ item.group }}"
+  become: true
+  loop: "{{ users }}"
+
+- name: setup sudoers
+  ansible.builtin.template:
+    src: templates/sudogroups.j2
+    dest: /etc/sudoers.d/sudogroups
+    validate: 'visudo -cf %s'
+    mode: 0440
+  become: true
