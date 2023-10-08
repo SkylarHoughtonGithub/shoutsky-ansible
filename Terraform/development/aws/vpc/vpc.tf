@@ -1,3 +1,5 @@
+# TODO: modularize vpc resourcs
+# TODO: expose vpc and subnet id in deployment
 resource "aws_vpc" "terraform-vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true

@@ -9,6 +9,4 @@ resource "aws_route_table" "terraformRT" {
   tags = {
     Name = "tf_rt"
   }
-
-
 }
