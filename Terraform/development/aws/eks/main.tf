@@ -3,10 +3,10 @@
 # TODO: explore secrets module
 # TODO: explore private dns and routing
 
-module "eks" {
+module "eks-use1" {
   source          = "terraform-aws-modules/eks/aws"
   version         = "~> 19.0"
-  for_each        = var.clusters
+  for_each        = var.clusters_use1
   cluster_name    = each.key
   cluster_version = each.value.cluster_version
   cluster_endpoint_public_access = each.value.cluster_endpoint_public_access
@@ -32,3 +32,7 @@ module "eks" {
   aws_auth_users            = try(each.value.aws_auth_users, null)
   aws_auth_accounts = try(each.value.aws_auth_accounts, null)
   tags = try(each.value.tags, null)
+      providers = {
+    aws = aws.use1
+  }
+}

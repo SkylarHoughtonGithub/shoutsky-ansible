@@ -1,5 +1,4 @@
-variable "module_version" { default = "~> 19.0" }
-variable "clusters" {
+variable "clusters_use1" {
   default = {
     "skylab" = {
       cluster_version                        = "1.27"
