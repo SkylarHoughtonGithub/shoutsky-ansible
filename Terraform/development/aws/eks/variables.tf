@@ -6,9 +6,9 @@ variable "clusters_use1" {
       enable_coredns                         = true
       enable_kube_proxy                      = true
       enable_vpc_cni                         = true
-      vpc_id                                 = "" #TODO: dynamically pull based on vpc name
-      subnet_ids                             = []
-      control_plane_subnet_ids               = []
+      vpc_id                                 = "vpc-0f6c219833fe92be7"
+      subnet_ids                             = ["subnet-04610b8b2e54b8972", "subnet-0f91e00155d822ebd"]
+      control_plane_subnet_ids               = ["subnet-04610b8b2e54b8972", "subnet-0f91e00155d822ebd"]
       update_launch_template_default_version = true
       eks_managed_node_groups = {
         small = {
@@ -23,14 +23,19 @@ variable "clusters_use1" {
         instance_types = ["t3.small"]
       }
       manage_aws_auth_configmap = true
-      #   aws_auth_roles = [
-      #     {
-      #       rolearn  = "arn:aws:iam::66666666666:role/role1"
-      #       username = "role1"
-      #       groups   = ["system:masters"]
-      #     },
-      #   ]
+      aws_auth_roles = [
+        {
+          rolearn  = "arn:aws:iam::635314249418:role/eksAdmin"
+          username = "eksAdmin"
+          groups   = ["system:masters"]
+        },
+      ]
       aws_auth_users = [
+        {
+          userarn  = "arn:aws:iam::635314249418:user/chicken"
+          username = "chicken"
+          groups   = ["view"]
+        },
         {
           userarn  = "arn:aws:iam::635314249418:user/egg"
           username = "egg"
