@@ -15,6 +15,12 @@ terraform {
   }
 }
 
+provider "kubernetes" {
+  host                   = module.eks-use1["skylab"].cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks-use1["skylab"].cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.main.token
+}
+
 provider "aws" {
   alias  = "use1"
   region = "us-east-1"
