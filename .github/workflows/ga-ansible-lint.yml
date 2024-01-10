@@ -1,0 +1,44 @@
+name: AnsiLint
+run-name: ansible-lint
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options:
+        - dev
+        - test
+        - prod
+        default: "dev"
+      working_dir:
+        type: string
+        description: Working resource dir to run workflow from (eg- apache)
+        default: "apache"
+
+jobs:
+  AnsiLint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set Environment
+      run: |
+        if [[ "${{ github.event.inputs.environment }}" == "dev" ]]; then
+          echo "ENV=development" >> $GITHUB_ENV
+        elif [[ "${{ github.event.inputs.environment }}" == "test" ]]; then
+          echo "ENV=staging" >> $GITHUB_ENV
+        elif [[ "${{ github.event.inputs.environment }}" == "production" ]]; then
+          echo "ENV=production" >> $GITHUB_ENV
+        else
+          echo "ENV=development" >> $GITHUB_ENV
+        fi
+
+    - name: Set Running Dir
+      run: |
+        cd ansible/$ENV/${{ github.event.inputs.working_dir}}
+
+    - name: Run ansible-lint
+      id: ansible-lint
+      uses: ansible/ansible-lint-action@main
