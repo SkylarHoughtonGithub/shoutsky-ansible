@@ -1,0 +1,32 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for kvm
+output:
+  all: ">> /var/log/cloud-init.log"
+
+# configure interaction with ssh server
+ssh_genkeytypes: ['ed25519', 'rsa']
+
+# Install needed packages
+packages:
+  - openshift-clients
+  - python3-openshift
+  - podman
+  - git
+  - wget
+  - net-tools
+  - bind-utils
+  - bash-completion
+  - firewalld
+
+# Run commands once the system is first booted
+runcmd:
+  - systemctl enable --now firewalld
+  - firewall-cmd --add-service=ssh --permanent
+  - firewall-cmd --add-service=http --permanent
+  - firewall-cmd --add-service=https --permanent
+  - firewall-cmd --reload
+  - echo "PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '" >> /home/{{ bastion_user }}/.bashrc
+  - echo "export PATH=$PATH:/usr/local/bin" >> /home/{{ bastion_user }}/.bashrc
+  - mkdir -p /home/{{ bastion_user }}/.openshift
+  - chown -R {{ bastion_user }}:{{ bastion_user }} /home/{{ bastion_user }}
