@@ -1,38 +1,50 @@
-Role Name
-=========
+# Ansible KVM Role
 
-A brief description of the role goes here.
+This role installs and configures KVM (Kernel-based Virtual Machine) virtualization on Linux systems.
 
-Requirements
-------------
+## Requirements
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- Linux host with CPU virtualization support (Intel VT-x or AMD-V)
+- Ansible 2.9 or higher
+- Root privileges on target hosts
 
-Role Variables
---------------
+## Role Variables
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+```yaml
+# defaults/main.yml
+kvm_packages:
+  - qemu-kvm
+  - libvirt-daemon
+  - libvirt-clients
+  - bridge-utils
+  - virt-manager
+  - cockpit
+  - cockpit-machines
+```
 
-Dependencies
-------------
+## Dependencies
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+None.
 
-Example Playbook
-----------------
+## Example Playbook
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+```yaml
+- hosts: virtualization_hosts
+  become: true
+  roles:
+    - kvm
+```
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+## Usage
 
-License
--------
+1. Include this role in your playbook
+2. Run the playbook: `ansible-playbook -i inventory playbook.yml`
+3. Access Cockpit web interface at https://server-ip:9090
 
-BSD
+## License
 
-Author Information
-------------------
+MIT
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+## Author Information
+
+Skylar Houghton
