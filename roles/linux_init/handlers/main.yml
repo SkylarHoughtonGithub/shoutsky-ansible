@@ -1,0 +1,14 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for linux_init
+- name: Restart sshd
+  systemd:
+    name: sshd
+    state: restarted
+
+- name: Restart chronyd
+  systemd:
+    name: chronyd
+    state: restarted
+    enabled: yes
+  when: "'chrony' in system_packages"

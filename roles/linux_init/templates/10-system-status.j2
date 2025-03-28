@@ -1,0 +1,103 @@
+#!/bin/bash
+# Dynamic MOTD for system status
+# Managed by Ansible
+
+# Text colors
+BLUE="\e[34m"
+GREEN="\e[32m"
+RED="\e[31m"
+YELLOW="\e[33m"
+RESET="\e[0m"
+BOLD="\e[1m"
+
+# Get hostname and kernel info
+HOSTNAME=$(hostname)
+KERNEL=$(uname -r)
+
+# Get system load and uptime
+LOAD=$(cat /proc/loadavg | awk '{print $1" "$2" "$3}')
+UPTIME=$(uptime -p | sed 's/up //')
+
+# Get memory usage
+MEM_TOTAL=$(free -m | grep Mem | awk '{print $2}')
+MEM_USED=$(free -m | grep Mem | awk '{print $3}')
+MEM_USED_PERCENT=$((MEM_USED * 100 / MEM_TOTAL))
+
+# Get disk usage
+ROOT_USAGE=$(df -h / | awk '/\// {print $(NF-1)}' | sed 's/%//')
+ROOT_AVAIL=$(df -h / | awk '/\// {print $(NF-2)}')
+
+# Check for specialized services
+declare -a SPECIAL_SERVICES=(
+    "libvirtd:KVM/QEMU Virtualization"
+    "elasticsearch:Elasticsearch"
+    "docker:Docker"
+    "kubelet:Kubernetes"
+    "postgresql:PostgreSQL"
+    "mariadb:MariaDB"
+    "mysqld:MySQL"
+    "mongodb:MongoDB"
+    "nginx:Nginx"
+    "apache2:Apache"
+    "httpd:Apache"
+)
+
+# Print header
+echo -e "${BLUE}${BOLD}System Information: ${HOSTNAME}${RESET}\n"
+
+# Print basic system info
+echo -e "${BOLD}Kernel:${RESET} ${KERNEL}"
+echo -e "${BOLD}Uptime:${RESET} ${UPTIME}"
+
+# Print load average with color based on value
+echo -ne "${BOLD}Load:${RESET} "
+IFS=" " read -r LOAD1 LOAD5 LOAD15 <<< "$LOAD"
+if (( $(echo "$LOAD1 > 2" | bc -l) )); then
+    echo -ne "${RED}"
+elif (( $(echo "$LOAD1 > 1" | bc -l) )); then
+    echo -ne "${YELLOW}"
+else
+    echo -ne "${GREEN}"
+fi
+echo -e "${LOAD}${RESET}"
+
+# Print memory usage with color
+echo -ne "${BOLD}Memory:${RESET} ${MEM_USED}MB/${MEM_TOTAL}MB (${MEM_USED_PERCENT}%) "
+if [ $MEM_USED_PERCENT -gt 80 ]; then
+    echo -e "${RED}[CRITICAL]${RESET}"
+elif [ $MEM_USED_PERCENT -gt 60 ]; then
+    echo -e "${YELLOW}[WARNING]${RESET}"
+else
+    echo -e "${GREEN}[OK]${RESET}"
+fi
+
+# Print disk usage with color
+echo -ne "${BOLD}Disk Space:${RESET} "
+if [ $ROOT_USAGE -gt 90 ]; then
+    echo -e "${RED}${ROOT_USAGE}%${RESET} used (${ROOT_AVAIL} available) ${RED}[CRITICAL]${RESET}"
+elif [ $ROOT_USAGE -gt 75 ]; then
+    echo -e "${YELLOW}${ROOT_USAGE}%${RESET} used (${ROOT_AVAIL} available) ${YELLOW}[WARNING]${RESET}"
+else
+    echo -e "${GREEN}${ROOT_USAGE}%${RESET} used (${ROOT_AVAIL} available) ${GREEN}[OK]${RESET}"
+fi
+
+# Check if special services are running and display them
+echo -e "\n${BLUE}${BOLD}Active Special Services:${RESET}"
+FOUND_SERVICES=0
+
+for SERVICE_INFO in "${SPECIAL_SERVICES[@]}"; do
+    SERVICE_NAME="${SERVICE_INFO%%:*}"
+    SERVICE_DESCRIPTION="${SERVICE_INFO#*:}"
+    
+    if systemctl is-active --quiet "$SERVICE_NAME" 2>/dev/null; then
+        echo -e "  ${GREEN}●${RESET} ${BOLD}${SERVICE_DESCRIPTION}${RESET}"
+        FOUND_SERVICES=1
+    fi
+done
+
+if [ $FOUND_SERVICES -eq 0 ]; then
+    echo -e "  No specialized services detected"
+fi
+
+# Print last empty line
+echo ""

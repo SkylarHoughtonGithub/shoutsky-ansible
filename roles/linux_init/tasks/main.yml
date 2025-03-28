@@ -1,0 +1,112 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Main tasks file for Linux base role
+
+# Gather facts to ensure ansible_os_family is available
+- name: Gather facts about the system
+  setup:
+
+# Check supported distributions
+- name: Check if we're running on a supported distribution
+  assert:
+    that:
+      - ansible_distribution in ['RedHat', 'CentOS', 'Debian', 'Ubuntu']
+    msg: "This playbook is designed for RHEL/CentOS or Debian/Ubuntu systems"
+
+# Include OS-specific tasks (package management and firewall)
+- name: Include OS-specific tasks
+  include_tasks: "{{ ansible_os_family | lower }}_tasks.yml"
+
+# User management
+- name: Create admin users
+  user:
+    name: "{{ item.username }}"
+    shell: /bin/bash
+    groups: "{{ item.groups }}"
+    append: yes
+  with_items: "{{ admin_users }}"
+  when: create_admin_users|bool
+
+- name: Set up passwordless sudo for admin users
+  copy:
+    dest: "/etc/sudoers.d/{{ item.username }}"
+    content: "{{ item.username }} ALL=(ALL) NOPASSWD: ALL"
+    mode: 0440
+    validate: "visudo -cf %s"
+  with_items: "{{ admin_users }}"
+  when: create_admin_users|bool
+
+- name: Create .ssh directories for admin users
+  file:
+    path: "/home/{{ item.username }}/.ssh"
+    state: directory
+    owner: "{{ item.username }}"
+    group: "{{ item.username }}"
+    mode: 0700
+  with_items: "{{ admin_users }}"
+  when: create_admin_users|bool and item.ssh_public_key is defined
+
+- name: Create .bashrc with custom PS1 for admin users
+  template:
+    src: bashrc.j2
+    dest: "/home/{{ item.username }}/.bashrc"
+    owner: "{{ item.username }}"
+    group: "{{ item.username }}"
+    mode: 0644
+  vars:
+    ps1_override: "{{ item.ps1_override | default(omit) }}"
+  with_items: "{{ admin_users }}"
+  when: create_admin_users|bool
+  
+- name: Add SSH public keys for admin users
+  copy:
+    content: "{{ item.ssh_public_key }}"
+    dest: "/home/{{ item.username }}/.ssh/authorized_keys"
+    owner: "{{ item.username }}"
+    group: "{{ item.username }}"
+    mode: 0600
+  with_items: "{{ admin_users }}"
+  when: create_admin_users|bool and item.ssh_public_key is defined
+  
+
+
+# NTP configuration
+- name: Configure chronyd
+  template:
+    src: templates/chrony.conf.j2
+    dest: /etc/chrony.conf
+    mode: 0644
+  notify: Restart chronyd
+  when: "'chrony' in system_packages"
+
+# Set timezone
+- name: Set system timezone
+  timezone:
+    name: "{{ system_timezone }}"
+
+# SSH configuration
+- name: Configure SSH
+  template:
+    src: templates/sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    mode: 0600
+    backup: yes
+  notify: Restart sshd
+
+- name: Configure SSH banner
+  template:
+    src: ssh_banner.j2
+    dest: /etc/ssh/banner
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart sshd
+
+- name: Update SSH config to use banner
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: "Banner /etc/ssh/banner"
+    regexp: "^#?Banner"
+    state: present
+  notify: Restart sshd
+

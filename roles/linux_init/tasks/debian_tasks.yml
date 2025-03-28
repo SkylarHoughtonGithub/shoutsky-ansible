@@ -1,0 +1,34 @@
+#SPDX-License-Identifier: MIT-0
+---
+# All Debian/Ubuntu specific tasks
+
+# Package management
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Update all packages
+  apt:
+    upgrade: dist
+
+- name: Install required packages
+  apt:
+    name: "{{ common_packages + deb_packages }}"
+    state: present
+
+- name: Create update-motd.d directory (Debian/Ubuntu)
+  file:
+    path: /etc/update-motd.d
+    state: directory
+    mode: 0755
+  when: ansible_os_family == "Debian"
+
+- name: Install dynamic MOTD script (Debian/Ubuntu)
+  template:
+    src: 10-system-status.j2
+    dest: /etc/update-motd.d/10-system-status
+    owner: root
+    group: root
+    mode: 0755
+  when: ansible_os_family == "Debian"

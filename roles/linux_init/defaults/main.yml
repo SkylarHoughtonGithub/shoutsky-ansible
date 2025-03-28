@@ -1,0 +1,49 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Default variables for Linux base role
+
+custom_ps1: '\[\e[32m\]\h\[\e[0m\]@\[\e[32m\]\u\[\e[0m\]:/\[\e[32m\]\W\[\e[0m\]~'
+system_timezone: "UTC"
+ntp_servers:
+  - "0.pool.ntp.org"
+  - "1.pool.ntp.org"
+
+# SSH settings
+ssh_port: 22
+allowed_ssh_users: ["ansible", "skylar"]
+
+# Package management
+common_packages:
+  - vim
+  - tmux
+  - htop
+  - iotop
+  - net-tools
+  - tcpdump
+  - rsync
+  - curl
+  - wget
+  - zip
+  - unzip
+  - git
+  - bc
+
+deb_packages:
+  - chrony
+  - python3-apt
+
+rhel_packages:
+  - chrony
+  - python3-libselinux
+
+# User management
+create_admin_users: true
+admin_users:
+  - username: "ansible"
+    groups: "wheel"
+    ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC4/O2hh1sQ17L0N+63IMJNypeTJ6Mi78tJmOaem5Y+MYUDkf7WPg36xl39T/fsuMUzm73zzOZ7S62tEphZ/X9zZ2jIiKIwFeXEQG7aEDbmFz8WVodT60/kvlp76S4fr1aDFeyGxSm51QoiiYySrAjT+rB89IhhjSrOAX8KbBkQLwv2HkWuHqqnWH9QQqxEXHnYLzq0ySGy7/dMROKBTLiDkXrtYmEskXf4ZOIUN9TnIF/lBxrlhdLNQ7/VSv/ojKmjsXUWI6MEA3C78rUb0w6Odx75pz2ZkjYVLIKgczJgJINz27MFehIJkHWZPyfZSfG5En2lBGCzQuXAfOzJ97PB6WILvu13t3c8HnDuyrV8DPfWYqMkpo49NgS78g9sRhj3+n0NUjqboLsCfS2xDlP5KO+H1O4dr6/iGGTGwAoCJJO6eytznmGKwZMP5eSSKHuaWw7OCDgF0Vy/jI18pMmiKGwYrfeJC5Di2KbMBBeVyulodjtEuMu1MtRKtjhNTz8= skylar@skylab"
+  - username: "skylar"
+    groups: "wheel"
+    ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC4/O2hh1sQ17L0N+63IMJNypeTJ6Mi78tJmOaem5Y+MYUDkf7WPg36xl39T/fsuMUzm73zzOZ7S62tEphZ/X9zZ2jIiKIwFeXEQG7aEDbmFz8WVodT60/kvlp76S4fr1aDFeyGxSm51QoiiYySrAjT+rB89IhhjSrOAX8KbBkQLwv2HkWuHqqnWH9QQqxEXHnYLzq0ySGy7/dMROKBTLiDkXrtYmEskXf4ZOIUN9TnIF/lBxrlhdLNQ7/VSv/ojKmjsXUWI6MEA3C78rUb0w6Odx75pz2ZkjYVLIKgczJgJINz27MFehIJkHWZPyfZSfG5En2lBGCzQuXAfOzJ97PB6WILvu13t3c8HnDuyrV8DPfWYqMkpo49NgS78g9sRhj3+n0NUjqboLsCfS2xDlP5KO+H1O4dr6/iGGTGwAoCJJO6eytznmGKwZMP5eSSKHuaWw7OCDgF0Vy/jI18pMmiKGwYrfeJC5Di2KbMBBeVyulodjtEuMu1MtRKtjhNTz8= skylar@skylab"
+    # Optional: ps1_override: "custom prompt here"
+

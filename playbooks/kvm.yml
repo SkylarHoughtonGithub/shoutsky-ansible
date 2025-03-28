@@ -3,4 +3,5 @@
   hosts: hypervisor
   become: true
   roles:
+  - ../roles/linux_init
   - ../roles/kvm
