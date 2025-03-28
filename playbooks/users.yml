@@ -1,6 +1,0 @@
----
-- name: add users and super groups
-  hosts: localhost
-  remote_user: shoutsky
-  roles:
-  - name: ../roles/users

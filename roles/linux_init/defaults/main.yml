@@ -1,9 +1,8 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # Default variables for Linux base role
-
-custom_ps1: '\[\e[32m\]\h\[\e[0m\]@\[\e[32m\]\u\[\e[0m\]:/\[\e[32m\]\W\[\e[0m\]~'
-system_timezone: "UTC"
+runtime_environment: "lab"
+system_timezone: "America/Kentucky/Louisville"
 ntp_servers:
   - "0.pool.ntp.org"
   - "1.pool.ntp.org"
@@ -16,8 +15,9 @@ allowed_ssh_users: ["ansible", "skylar"]
 common_packages:
   - vim
   - tmux
-  - htop
+  - nmap
   - iotop
+  - bind-utils
   - net-tools
   - tcpdump
   - rsync
@@ -27,13 +27,12 @@ common_packages:
   - unzip
   - git
   - bc
+  - chrony
 
 deb_packages:
-  - chrony
   - python3-apt
 
 rhel_packages:
-  - chrony
   - python3-libselinux
 
 # User management
@@ -41,9 +40,8 @@ create_admin_users: true
 admin_users:
   - username: "ansible"
     groups: "wheel"
-    ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC4/O2hh1sQ17L0N+63IMJNypeTJ6Mi78tJmOaem5Y+MYUDkf7WPg36xl39T/fsuMUzm73zzOZ7S62tEphZ/X9zZ2jIiKIwFeXEQG7aEDbmFz8WVodT60/kvlp76S4fr1aDFeyGxSm51QoiiYySrAjT+rB89IhhjSrOAX8KbBkQLwv2HkWuHqqnWH9QQqxEXHnYLzq0ySGy7/dMROKBTLiDkXrtYmEskXf4ZOIUN9TnIF/lBxrlhdLNQ7/VSv/ojKmjsXUWI6MEA3C78rUb0w6Odx75pz2ZkjYVLIKgczJgJINz27MFehIJkHWZPyfZSfG5En2lBGCzQuXAfOzJ97PB6WILvu13t3c8HnDuyrV8DPfWYqMkpo49NgS78g9sRhj3+n0NUjqboLsCfS2xDlP5KO+H1O4dr6/iGGTGwAoCJJO6eytznmGKwZMP5eSSKHuaWw7OCDgF0Vy/jI18pMmiKGwYrfeJC5Di2KbMBBeVyulodjtEuMu1MtRKtjhNTz8= skylar@skylab"
+    ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCUzQcOY7J+Y9PFv5HB24i0brUWmN6innM0UbkPZpUj09aYl0FqcnCFmGP0PriHh/YEWhRiqK/3Td/jazds42g4x1wWcn0FiSjl6fI7AuJAQuHJ8IbypazdXvBLC99GGc54G1dvEa1g4OIDs40xDStzgxID9DzfzsCNS4YsHFu1jWxSuxtAMtufbzlu1pc8+e9H7Al77C7pol13xLrkfNntCpYWy47zxyd+OFQQgXBZYsWQ6tltefru4TS/JivjB4aQqBHbkmgbBMgPbIp/zlSlEf/0nBqHva2YldyuoWcm9EhxGxLg1HGvLOzilkwcHbrEStmJ/YPv9PkU+dD2+1b4VHdLlHRvqyX72XGAp+jSE1wVBBHXZRUz0so7vYJRDsXC57b8anjD7Nl5qu5u1b5PULg+cOJPFhVudP6eudmzh528XYqm8O/CmOryg00kD49YcW0xPvnj1pRs6ZNlc04Fs2MmujD5PBDTsxQIa0lxxFWjGIpLKVN1pTVSlf46cAE= skylar@skylab-host"
   - username: "skylar"
     groups: "wheel"
-    ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC4/O2hh1sQ17L0N+63IMJNypeTJ6Mi78tJmOaem5Y+MYUDkf7WPg36xl39T/fsuMUzm73zzOZ7S62tEphZ/X9zZ2jIiKIwFeXEQG7aEDbmFz8WVodT60/kvlp76S4fr1aDFeyGxSm51QoiiYySrAjT+rB89IhhjSrOAX8KbBkQLwv2HkWuHqqnWH9QQqxEXHnYLzq0ySGy7/dMROKBTLiDkXrtYmEskXf4ZOIUN9TnIF/lBxrlhdLNQ7/VSv/ojKmjsXUWI6MEA3C78rUb0w6Odx75pz2ZkjYVLIKgczJgJINz27MFehIJkHWZPyfZSfG5En2lBGCzQuXAfOzJ97PB6WILvu13t3c8HnDuyrV8DPfWYqMkpo49NgS78g9sRhj3+n0NUjqboLsCfS2xDlP5KO+H1O4dr6/iGGTGwAoCJJO6eytznmGKwZMP5eSSKHuaWw7OCDgF0Vy/jI18pMmiKGwYrfeJC5Di2KbMBBeVyulodjtEuMu1MtRKtjhNTz8= skylar@skylab"
-    # Optional: ps1_override: "custom prompt here"
+    ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCUzQcOY7J+Y9PFv5HB24i0brUWmN6innM0UbkPZpUj09aYl0FqcnCFmGP0PriHh/YEWhRiqK/3Td/jazds42g4x1wWcn0FiSjl6fI7AuJAQuHJ8IbypazdXvBLC99GGc54G1dvEa1g4OIDs40xDStzgxID9DzfzsCNS4YsHFu1jWxSuxtAMtufbzlu1pc8+e9H7Al77C7pol13xLrkfNntCpYWy47zxyd+OFQQgXBZYsWQ6tltefru4TS/JivjB4aQqBHbkmgbBMgPbIp/zlSlEf/0nBqHva2YldyuoWcm9EhxGxLg1HGvLOzilkwcHbrEStmJ/YPv9PkU+dD2+1b4VHdLlHRvqyX72XGAp+jSE1wVBBHXZRUz0so7vYJRDsXC57b8anjD7Nl5qu5u1b5PULg+cOJPFhVudP6eudmzh528XYqm8O/CmOryg00kD49YcW0xPvnj1pRs6ZNlc04Fs2MmujD5PBDTsxQIa0lxxFWjGIpLKVN1pTVSlf46cAE= skylar@skylab-host"
 

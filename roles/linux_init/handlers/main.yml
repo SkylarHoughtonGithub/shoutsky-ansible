@@ -11,4 +11,4 @@
     name: chronyd
     state: restarted
     enabled: yes
-  when: "'chrony' in system_packages"
+  when: "'chrony' in common_packages"

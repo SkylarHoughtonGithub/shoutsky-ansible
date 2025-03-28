@@ -10,7 +10,7 @@
 - name: Check if we're running on a supported distribution
   assert:
     that:
-      - ansible_distribution in ['RedHat', 'CentOS', 'Debian', 'Ubuntu']
+      - ansible_os_family in ['RedHat', 'Debian']
     msg: "This playbook is designed for RHEL/CentOS or Debian/Ubuntu systems"
 
 # Include OS-specific tasks (package management and firewall)
@@ -53,8 +53,6 @@
     owner: "{{ item.username }}"
     group: "{{ item.username }}"
     mode: 0644
-  vars:
-    ps1_override: "{{ item.ps1_override | default(omit) }}"
   with_items: "{{ admin_users }}"
   when: create_admin_users|bool
   
@@ -67,8 +65,6 @@
     mode: 0600
   with_items: "{{ admin_users }}"
   when: create_admin_users|bool and item.ssh_public_key is defined
-  
-
 
 # NTP configuration
 - name: Configure chronyd
@@ -77,7 +73,7 @@
     dest: /etc/chrony.conf
     mode: 0644
   notify: Restart chronyd
-  when: "'chrony' in system_packages"
+  when: "'chrony' in common_packages"
 
 # Set timezone
 - name: Set system timezone

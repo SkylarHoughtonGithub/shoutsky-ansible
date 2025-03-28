@@ -8,3 +8,6 @@ web2 ansible_host=192.168.55.202 ansible_user=vagrant ansible_ssh_pass=vagrant a
 [database]
 database1 ansible_host=192.168.55.203 ansible_user=vagrant ansible_ssh_pass=vagrant ansible_python_interpreter=/usr/bin/python3
 database2 ansible_host=192.168.55.204 ansible_user=vagrant ansible_ssh_pass=vagrant ansible_python_interpreter=/usr/bin/python3
+
+[kvm]
+kvm1 ansible_host=192.168.88.252 ansible_user=skylar
