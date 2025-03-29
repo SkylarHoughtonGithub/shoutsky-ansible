@@ -1,8 +1,0 @@
----
-# tasks file for cron
-- name: Install ping cron job
-  cron:
-    name: "check ping"
-    hour: "0"
-    job: "ping 8.8.8.8 -c 5 >> ping_test.log"
-    

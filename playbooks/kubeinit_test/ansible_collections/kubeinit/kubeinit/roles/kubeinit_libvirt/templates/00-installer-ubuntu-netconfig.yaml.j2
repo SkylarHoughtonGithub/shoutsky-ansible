@@ -1,0 +1,24 @@
+# This file is rendered using a	template from a KubeInit role
+# This file will be overridden each time	the playbook runs
+# No not edit directly
+# More information at: https://github.com/kubeinit/kubeinit
+network:
+  version: 2
+  renderer: networkd
+
+  ethernets:
+    enp1s0:
+      dhcp4: false
+      dhcp6: false
+      link-local: [ ]
+      addresses: [{{ hostvars[kubeinit_deployment_node_name].ansible_host }}/{{ kubeinit_cluster_prefix }}]
+      gateway4: {{ kubeinit_cluster_gateway }}
+      match:
+        macaddress: {{ hostvars[kubeinit_deployment_node_name].mac }}
+      mtu: "1442"
+      nameservers:
+        #addresses: [{{ kubeinit_bind_service_address }}]
+        addresses: [{{ kubeinit_dns_public }}]
+
+# enp1s0
+# enp2s0

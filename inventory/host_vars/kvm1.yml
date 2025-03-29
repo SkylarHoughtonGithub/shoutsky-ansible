@@ -1,0 +1,30 @@
+# Cluster configuration
+cluster_name: skylab-okd
+cluster_domain: skylarhoughtongithub.com
+
+# Node configuration
+control_node_count: 3
+compute_node_count: 3
+service_node_count: 1
+
+# Resource allocation (per node)
+control_node_memory: 8192
+control_node_vcpus: 4
+compute_node_memory: 8192
+compute_node_vcpus: 4
+service_node_memory: 4096
+service_node_vcpus: 2
+
+# Network configuration
+network_cidr: 10.0.0.0/24
+pod_cidr: 10.100.0.0/16
+service_cidr: 172.30.0.0/16
+
+# OKD version
+okd_version: 4.12
+
+hypervisor_hosts:
+  - name: kvm1
+    ansible_host: 192.168.88.252
+    ansible_user: ansible 
+    ansible_ssh_private_key_file: /home/skylar/.ssh/id_rsa

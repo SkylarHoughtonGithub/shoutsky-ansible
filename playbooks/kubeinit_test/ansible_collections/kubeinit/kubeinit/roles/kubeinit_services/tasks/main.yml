@@ -1,0 +1,84 @@
+---
+# Copyright kubeinit contributors
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+- name: Prepare the environment and stop the deployment if required
+  block:
+    - name: Prepare environment if not prepared
+      ansible.builtin.include_role:
+        name: kubeinit.kubeinit.kubeinit_prepare
+        public: true
+      vars:
+        environment_prepared: "{{ 'kubeinit_facts' in groups }}"
+      when: not environment_prepared
+
+    - name: Stop the deployment if required
+      block:
+        - name: "Stop before 'task-create-services' when requested"
+          ansible.builtin.add_host:
+            name: "kubeinit-facts"
+            playbook_terminated: true
+        - name: End play
+          ansible.builtin.meta: end_play
+      when: kubeinit_stop_before_task is defined and kubeinit_stop_before_task == 'task-create-services'
+  tags: omit_from_grapher
+
+- name: Setup the services pod
+  ansible.builtin.include_tasks: 00_create_service_pod.yml
+  loop: "{{ groups['all_service_nodes'] }}"
+  loop_control:
+    loop_var: kubeinit_deployment_node_name
+  vars:
+    kubeinit_deployment_bridge_name: "{{ hostvars[kubeinit_deployment_node_name].guest_name }}-bridge"
+    kubeinit_deployment_pod_name: "{{ hostvars[kubeinit_deployment_node_name].guest_name }}-pod"
+    kubeinit_deployment_delegate: "{{ hostvars[kubeinit_deployment_node_name].target }}"
+
+- name: Prepare the credentials we are going to use in the cluster
+  ansible.builtin.include_tasks: prepare_credentials.yml
+  vars:
+    kubeinit_deployment_node_name: "{{ kubeinit_provision_service_node }}"
+    kubeinit_deployment_pod_name: "{{ hostvars[kubeinit_provision_service_node].guest_name }}-pod"
+    kubeinit_deployment_delegate: "{{ hostvars[kubeinit_provision_service_node].target }}"
+
+- name: Start services containers
+  ansible.builtin.include_tasks: start_services_containers.yml
+  loop: "{{ groups['all_service_nodes'] }}"
+  loop_control:
+    loop_var: kubeinit_deployment_node_name
+  vars:
+    kubeinit_deployment_pod_name: "{{ hostvars[kubeinit_deployment_node_name].guest_name }}-pod"
+    kubeinit_deployment_delegate: "{{ hostvars[kubeinit_deployment_node_name].target }}"
+
+- name: Gather hosts facts and stop the deployment if required
+  block:
+    - name: Add task-create-services to tasks_completed
+      ansible.builtin.add_host:
+        name: "kubeinit-facts"
+        tasks_completed: "{{ kubeinit_facts_hostvars.tasks_completed | union(['task-create-services']) }}"
+
+    - name: Update kubeinit_facts_hostvars
+      ansible.builtin.set_fact:
+        kubeinit_facts_hostvars: "{{ hostvars['kubeinit-facts'] }}"
+
+    - name: Stop the deployment if required
+      block:
+        - name: Stop after 'task-create-services' when requested
+          ansible.builtin.add_host:
+            name: "kubeinit-facts"
+            playbook_terminated: true
+        - name: End play
+          ansible.builtin.meta: end_play
+      when: kubeinit_stop_after_task is defined and kubeinit_stop_after_task in kubeinit_facts_hostvars.tasks_completed
+  tags: omit_from_grapher

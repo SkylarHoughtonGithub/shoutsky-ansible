@@ -1,0 +1,61 @@
+---
+# Playbook for OKD deployment preparation with KubeInit
+- name: Install KubeInit dependencies
+  hosts: localhost
+  connection: local
+  become: true
+  tasks:
+    - name: Install pip and ansible
+      dnf:
+        name: 
+        - pip
+        - ansible-core
+        state: present
+
+    - name: Install Python dependencies
+      pip:
+        name:
+          - shyaml
+          - netaddr
+        state: latest
+        executable: pip3
+
+    - name: Install KubeInit collection
+      command: ansible-galaxy collection install -r requirements.yml -p . --force
+      changed_when: true
+
+- name: Create custom specifications
+  hosts: localhost
+  connection: local
+  become: true
+  vars:
+    control_nodes: "{{ control_node_count | default(3) }}"
+    compute_nodes: "{{ compute_node_count | default(2) }}"
+    service_nodes: "{{ service_node_count | default(1) }}"
+  tasks:
+    - name: Create custom specs file
+      copy:
+        content: |
+          ---
+          kubeinit_spec: okd-libvirt-{{ control_nodes }}-{{ compute_nodes }}-{{ service_nodes }}
+          kubeinit:
+            common:
+              cluster_distro: okd
+              cluster_name: {{ cluster_name | default('okd') }}
+              cluster_domain: {{ cluster_domain | default('kubeinit.local') }}
+              cluster_nodes_spec:
+                control: {{ control_nodes }}
+                compute: {{ compute_nodes }}
+                service: {{ service_nodes }}
+              hypervisor_hosts:
+                - name: kvm1
+                  ansible_host: 192.168.88.252
+        dest: custom_spec.yml
+        mode: 0644
+
+    - name: Display deployment command
+      debug:
+        msg: |
+          KubeInit preparation complete on localhost.
+          
+          To deploy OKD, execute the run.sh script

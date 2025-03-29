@@ -1,0 +1,53 @@
+{
+ "collection_info": {
+  "namespace": "kubeinit",
+  "name": "kubeinit",
+  "version": "2.2.2",
+  "authors": [
+   "Carlos Camacho <carloscamachoucv@gmail.com>",
+   "kubeinit (https://github.com/kubeinit)"
+  ],
+  "readme": "README.md",
+  "tags": [
+   "k8s",
+   "okd",
+   "rke",
+   "cdk",
+   "eks",
+   "kubernetes",
+   "openshift",
+   "origin",
+   "canonical",
+   "rancher",
+   "aws"
+  ],
+  "description": "KubeInit",
+  "license": [
+   "Apache-2.0"
+  ],
+  "license_file": null,
+  "dependencies": {
+   "ansible.netcommon": "==5.1.1",
+   "ansible.posix": "==1.5.4",
+   "ansible.utils": "==2.10.3",
+   "ansible.windows": "==1.14.0",
+   "community.crypto": "==2.13.1",
+   "community.general": "==7.0.1",
+   "community.libvirt": "==1.2.0",
+   "containers.podman": "==1.10.2",
+   "openvswitch.openvswitch": "==2.1.1"
+  },
+  "repository": "https://github.com/kubeinit/kubeinit",
+  "documentation": null,
+  "homepage": "https://www.kubeinit.org",
+  "issues": "https://github.com/kubeinit/kubeinit/issues"
+ },
+ "file_manifest_file": {
+  "name": "FILES.json",
+  "ftype": "file",
+  "chksum_type": "sha256",
+  "chksum_sha256": "69de706d4f8f0ea9b11f6fce21abf1e1ab3015b5fbce18619a4d1f095a1eb84c",
+  "format": 1
+ },
+ "format": 1
+}

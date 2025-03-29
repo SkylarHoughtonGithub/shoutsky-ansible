@@ -1,0 +1,42 @@
+---
+
+###
+# The cluster's guest VM nodes can be distributed across mutiple hosts. By default they
+# will be deployed in the first Hypervisor. These hypervisors are activated and used
+# depending on how they are referenced in the kubeinit spec string.
+#
+# In the first example we would associate the ansible_host of the first hypervisor host
+# "nyctea" with the hostname provided, it can be a short or fully qualified name, but it
+# needs to be resolvable on the host we are running kubeinit from. The second example
+# uses a host ip address, which can be useful in those cases where the host you are using
+# doesn't have a dns name.
+#
+# Examples:
+#
+# -e hypervisor_hosts_spec='[{"host":"hypervisor-01","ansible_host":"nyctea","ssh_hostname":"server1.example.com"}]'
+
+# -e hypervisor_hosts_spec='[{"host":"hypervisor-01","ansible_host":"192.168.222.202"}]'
+#
+
+###
+# The inventory will have one host identified as the bastion host. By default, this role will
+# be assumed by the first hypervisor. The first example would set the second hypervisor to be
+# the bastion host. The final example would set the bastion host to be a different host that
+# is not being used as a hypervisor for the guests VMs of the cluster.
+#
+# Examples:
+#
+# -e bastion_host_spec='{"host":"bastion","target":"hypervisor-02"}'
+#
+# -e bastion_host_spec='{"host":"bastion","ansible_host":"bastion.example.com"}'
+#
+
+###
+# The inventory will have one host identified as the ovn-central host. By default, this role
+# will be assumed by the first hypervisor. The example would set the second hypervisor to be
+# the ovn-central host.
+#
+# Example:
+#
+# -e ovn_central_host_spec='{"host":"ovn-central","target":"hypervisor-02"}'
+#

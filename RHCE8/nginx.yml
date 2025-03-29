@@ -1,7 +1,0 @@
----
-- name: Install nginx
-  hosts: web
-  remote_user: shoutsky
-  become: true
-  roles:
-   - nginx
