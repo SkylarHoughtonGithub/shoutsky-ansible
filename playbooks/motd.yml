@@ -1,9 +1,0 @@
----
-# Task 3
-- hosts: all
-  become: True
-  remote_user: vagrant
-  roles:
-  - ../roles/motd
-  
-
