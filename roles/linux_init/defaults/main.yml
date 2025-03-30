@@ -34,6 +34,7 @@ deb_packages:
 
 rhel_packages:
   - python3-libselinux
+  - cockpit
 
 # User management
 create_admin_users: true

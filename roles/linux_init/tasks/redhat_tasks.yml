@@ -13,6 +13,12 @@
     name: "{{ common_packages + rhel_packages }}"
     state: present
 
+- name: Enable cockpit
+  service:
+    name: cockpit.socket
+    state: started
+    enabled: true
+
 # Configure dynamic MOTD
 - name: Create dynamic MOTD script directory (RHEL/CentOS)
   file:
