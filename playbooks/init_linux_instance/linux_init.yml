@@ -4,3 +4,4 @@
   become: true
   roles:
   - ../roles/linux_init
+  - ../roles/tailscale

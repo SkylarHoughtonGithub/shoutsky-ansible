@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for tailscale
+
+- name: Check if Tailscale is already installed
+  ansible.builtin.stat:
+    path: /usr/bin/tailscale
+  register: tailscale_binary
+
+- name: Install tailscale agent
+  ansible.builtin.shell:
+    cmd: curl -fsSL https://tailscale.com/install.sh | sh
+  when: not tailscale_binary.stat.exists
+
+- name: Bring Tailscale up
+  ansible.builtin.shell: >
+    tailscale up
+    --authkey={{ tailscale_key }}
+    --reset
+
+- name: Verify Tailscale healthy and running
+  ansible.builtin.command: tailscale status
+  register: tailscale_status
+  changed_when: false
+  failed_when: "'Tailscale is running' not in tailscale_status.stdout"
+
+- name: Show Tailscale status
+  ansible.builtin.debug:
+    var: tailscale_status.stdout_lines
+  when: tailscale_status is defined
