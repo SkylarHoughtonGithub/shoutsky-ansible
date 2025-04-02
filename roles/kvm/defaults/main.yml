@@ -2,22 +2,34 @@
 # defaults file for kvm
 
 kvm_packages:
-  - bridge-utils
-  - cockpit
-  - cockpit-machines
-  - cockpit-podman
-  - cockpit-system
   - libguestfs-tools
+  - guestfs-tools
   - libvirt
   - libvirt-client
   - libvirt-daemon
   - libvirt-daemon-driver-network
   - libvirt-daemon-driver-qemu
   - libvirt-daemon-driver-storage
-  - NetworkManager
-  - NetworkManager-libnm
   - qemu-kvm
   - virt-install
   - virt-manager
   - virt-top
   - virt-viewer
+
+install_kvm: true
+
+# Control flag - set to true to enable bridge networking
+create_network_bridge: false
+
+# Bridge packages
+bridge_packages:
+  - bridge-utils
+  - NetworkManager-libnm
+
+# Bridge network settings
+nat_network_name: "openshift4"
+nat_network_address: "192.168.100.1"  # Change to your desired IP
+nat_network_cidr: "255.255.255.0"  # Change to your desired IP
+
+# Firewall settings
+use_firewalld: false       # Set to false if not using firewalld
