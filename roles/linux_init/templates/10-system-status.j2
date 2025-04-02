@@ -89,8 +89,9 @@ for SERVICE_INFO in "${SPECIAL_SERVICES[@]}"; do
     SERVICE_NAME="${SERVICE_INFO%%:*}"
     SERVICE_DESCRIPTION="${SERVICE_INFO#*:}"
     
-    if systemctl is-active --quiet "$SERVICE_NAME" 2>/dev/null; then
-        echo -e "  ${GREEN}●${RESET} ${BOLD}${SERVICE_DESCRIPTION}${RESET}"
+    # Redirect both stdout and stderr to a variable
+    if SERVICE_STATUS=$(systemctl status "$SERVICE_NAME" 2>/dev/null); then
+        echo -e "  ● ${BOLD}${SERVICE_DESCRIPTION}${RESET}"
         FOUND_SERVICES=1
     fi
 done

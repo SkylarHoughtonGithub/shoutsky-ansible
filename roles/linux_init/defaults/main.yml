@@ -13,21 +13,22 @@ allowed_ssh_users: ["ansible", "skylar"]
 
 # Package management
 common_packages:
-  - vim
-  - tmux
-  - nmap
-  - iotop
+  - bc
   - bind-utils
-  - net-tools
-  - tcpdump
-  - rsync
+  - chrony
   - curl
+  - epel-release
+  - git
+  - iotop
+  - net-tools
+  - nmap
+  - rsync
+  - tcpdump
+  - tmux
+  - unzip
+  - vim
   - wget
   - zip
-  - unzip
-  - git
-  - bc
-  - chrony
 
 deb_packages:
   - python3-apt
