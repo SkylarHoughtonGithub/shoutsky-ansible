@@ -8,4 +8,4 @@
   vars:
     create_nat_network: true
   roles:
-  - ../../roles/kvm
+  - ../../roles/kvm_setup_host

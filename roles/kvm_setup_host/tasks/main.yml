@@ -9,6 +9,12 @@
       register: virt_extensions
       failed_when: virt_extensions.rc != 0
       changed_when: false
+    
+    - name: Ensure directory for VM images exists
+      file:
+        path: "/var/lib/libvirt/images"
+        state: directory
+        mode: '0755'
 
     - name: Install KVM and related packages
       package:
