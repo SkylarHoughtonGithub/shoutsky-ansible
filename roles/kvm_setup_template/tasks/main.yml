@@ -18,3 +18,15 @@
   loop: "{{ base_templates }}"
   loop_control:
     label: "{{ item.name }}"
+  when: 
+    - create_base_templates
+    - item.iso_path is not defined
+
+- name: Download cloud images for custom templates
+  get_url:
+    url: "{{ item.iso_path }}"
+    dest: "{{ item.disk_path }}"
+  loop: "{{ base_templates }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.iso_path is defined

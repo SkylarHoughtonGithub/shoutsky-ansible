@@ -1,19 +1,16 @@
 #SPDX-License-Identifier: MIT-0
 ---
-# defaults file for kvm_setup_template
-template_images_dir: "/var/lib/libvirt/images/templates"
+create_base_templates: true
+template_images_dir: /var/lib/libvirt/images/templates
+default_password: "{{ lookup('amazon.aws.aws_ssm', '/kvm/vm_root_password', region='us-east-2' )}}"
 
-# Define OS map with available templates
 os_templates:
-  alma85: alma-8.5
-  debian12: debian-12
-  ubuntu2204: ubuntu-22.04
-  fedora38: fedora-38
+  alma8.5: almalinux-8.5
+  alma9: almalinux-9
 
-# Base template definitions (these become your "golden images")
-base_templates:
+default_base_templates:
   - name: alma85_base
-    os: alma85
+    os: alma8.5
     disk_size: 20G
-    disk_path: /var/lib/libvirt/images/templates/alma85_base.qcow2
-    root_password: password
+    disk_path: "{{ template_images_dir }}/alma85_base.qcow2"
+    root_password: "{{ default_password }}"

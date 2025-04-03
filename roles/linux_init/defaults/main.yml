@@ -37,13 +37,15 @@ rhel_packages:
   - python3-libselinux
   - cockpit
 
+default_ssh_public_key: "{{ lookup('amazon.aws.aws_ssm', '/kvm/vm_root_pub_key', region='us-east-2' )}}"
+
 # User management
 create_admin_users: true
 admin_users:
   - username: "ansible"
     groups: "wheel"
-    ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCUzQcOY7J+Y9PFv5HB24i0brUWmN6innM0UbkPZpUj09aYl0FqcnCFmGP0PriHh/YEWhRiqK/3Td/jazds42g4x1wWcn0FiSjl6fI7AuJAQuHJ8IbypazdXvBLC99GGc54G1dvEa1g4OIDs40xDStzgxID9DzfzsCNS4YsHFu1jWxSuxtAMtufbzlu1pc8+e9H7Al77C7pol13xLrkfNntCpYWy47zxyd+OFQQgXBZYsWQ6tltefru4TS/JivjB4aQqBHbkmgbBMgPbIp/zlSlEf/0nBqHva2YldyuoWcm9EhxGxLg1HGvLOzilkwcHbrEStmJ/YPv9PkU+dD2+1b4VHdLlHRvqyX72XGAp+jSE1wVBBHXZRUz0so7vYJRDsXC57b8anjD7Nl5qu5u1b5PULg+cOJPFhVudP6eudmzh528XYqm8O/CmOryg00kD49YcW0xPvnj1pRs6ZNlc04Fs2MmujD5PBDTsxQIa0lxxFWjGIpLKVN1pTVSlf46cAE= skylar@skylab-host"
+    ssh_public_key: "{{ default_ssh_public_key }}"
   - username: "skylar"
     groups: "wheel"
-    ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCUzQcOY7J+Y9PFv5HB24i0brUWmN6innM0UbkPZpUj09aYl0FqcnCFmGP0PriHh/YEWhRiqK/3Td/jazds42g4x1wWcn0FiSjl6fI7AuJAQuHJ8IbypazdXvBLC99GGc54G1dvEa1g4OIDs40xDStzgxID9DzfzsCNS4YsHFu1jWxSuxtAMtufbzlu1pc8+e9H7Al77C7pol13xLrkfNntCpYWy47zxyd+OFQQgXBZYsWQ6tltefru4TS/JivjB4aQqBHbkmgbBMgPbIp/zlSlEf/0nBqHva2YldyuoWcm9EhxGxLg1HGvLOzilkwcHbrEStmJ/YPv9PkU+dD2+1b4VHdLlHRvqyX72XGAp+jSE1wVBBHXZRUz0so7vYJRDsXC57b8anjD7Nl5qu5u1b5PULg+cOJPFhVudP6eudmzh528XYqm8O/CmOryg00kD49YcW0xPvnj1pRs6ZNlc04Fs2MmujD5PBDTsxQIa0lxxFWjGIpLKVN1pTVSlf46cAE= skylar@skylab-host"
+    ssh_public_key: "{{ default_ssh_public_key }}"
 
