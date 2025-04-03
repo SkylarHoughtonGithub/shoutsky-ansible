@@ -1,0 +1,17 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for kvm_setup_vm
+template_images_dir: "/var/lib/libvirt/images/templates"
+
+vm_instances:
+  - name: "web01"
+    base_path: "{{ template_images_dir }}/alma85_base.qcow2"
+    disk_path: "{{ vm_images_dir }}/web01.qcow2"
+    memory_mb: 4096
+    vcpus: 2
+  
+  - name: "db01"
+    base_path: "{{ template_images_dir }}/alma85_base.qcow2"
+    disk_path: "{{ vm_images_dir }}/db01.qcow2"
+    memory_mb: 8192
+    vcpus: 4

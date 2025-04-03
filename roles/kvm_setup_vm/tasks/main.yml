@@ -1,0 +1,58 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Check if base template images exist
+  stat:
+    path: "{{ item.base_path }}"
+  register: template_status
+  loop: "{{ vm_instances }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Fail if any template image doesn't exist
+  fail:
+    msg: "Template image {{ item.item.base_path }} for VM {{ item.item.name }} does not exist."
+  when: not item.stat.exists
+  loop: "{{ template_status.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+
+- name: VM creation and management
+  block:
+    - name: Generate VM libvirt XML
+      command: >
+        virt-install
+        --name {{ item.name }}
+        --memory {{ item.memory_mb | default(vm_memory_mb) }}
+        --vcpus {{ item.vcpus | default(vm_vcpus) }}
+        --disk {{ item.disk_path }},format=qcow2
+        --import
+        --os-variant detect=on,require=off
+        --noautoconsole
+        --print-xml
+      register: vm_xml
+      changed_when: false
+      failed_when: false
+      loop: "{{ vm_instances }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Define VM using XML
+      community.libvirt.virt:
+        name: "{{ item.name }}"
+        command: define
+        xml: "{{ item_xml.results[index].stdout }}"
+      loop: "{{ vm_instances }}"
+      loop_control:
+        index_var: index
+        label: "{{ item.name }}"
+      vars:
+        item_xml: "{{ vm_xml }}"
+      when: item_xml.results[index].rc == 0
+
+    - name: Start VMs
+      community.libvirt.virt:
+        name: "{{ item.name }}"
+        state: running
+      loop: "{{ vm_instances }}"
+      loop_control:
+        label: "{{ item.name }}"
