@@ -1,30 +1,70 @@
-# Cluster configuration
-cluster_name: skylab-okd
-cluster_domain: skylarhoughtongithub.com
+---
+domain: okd.skylarhoughtongithub.com
 
-# Node configuration
-control_node_count: 3
-compute_node_count: 3
-service_node_count: 1
+default_password: "{{ lookup('amazon.aws.aws_ssm', '/kvm/vm_root_password', region='us-east-2' )}}"
+default_ssh_public_key: "{{ lookup('amazon.aws.aws_ssm', '/kvm/vm_root_pub_key', region='us-east-2' )}}"
 
-# Resource allocation (per node)
-control_node_memory: 8192
-control_node_vcpus: 4
-compute_node_memory: 8192
-compute_node_vcpus: 4
-service_node_memory: 4096
-service_node_vcpus: 2
+# vm_instances:
+#   - name: "bastion.{{ domain }}"
+#     base_path: "{{ template_images_dir }}/alma9_base.qcow2"
+#     disk_path: "{{ vm_images_dir }}/bastion.qcow2"
+#     memory_mb: 4096
+#     vcpus: 2
+#     root_password: "{{ default_password }}"
+#     ssh_authorized_key: "{{ default_ssh_public_key }}"
 
-# Network configuration
-network_cidr: 10.0.0.0/24
-pod_cidr: 10.100.0.0/16
-service_cidr: 172.30.0.0/16
+  # - name: "master1.{{ domain }}"
+  #   base_path: "{{ template_images_dir }}/alma9_base.qcow2"
+  #   disk_path: "{{ vm_images_dir }}/master1.qcow2"
+  #   memory_mb: 8196
+  #   vcpus: 4
+  #   root_password: "{{ default_password }}"
+  #   ssh_authorized_key: "{{ default_ssh_public_key }}"
 
-# OKD version
-okd_version: 4.12
+  # - name: "master2.{{ domain }}"
+  #   base_path: "{{ template_images_dir }}/alma9_base.qcow2"
+  #   disk_path: "{{ vm_images_dir }}/master2.qcow2"
+  #   memory_mb: 8196
+  #   vcpus: 4
+  #   root_password: "{{ default_password }}"
+  #   ssh_authorized_key: "{{ default_ssh_public_key }}"
 
-hypervisor_hosts:
-  - name: kvm1
-    ansible_host: 192.168.88.252
-    ansible_user: ansible 
-    ansible_ssh_private_key_file: /home/skylar/.ssh/id_rsa
+  # - name: "master3.{{ domain }}"
+  #   base_path: "{{ template_images_dir }}/alma9_base.qcow2"
+  #   disk_path: "{{ vm_images_dir }}/master3.qcow2"
+  #   memory_mb: 8196
+  #   vcpus: 4
+  #   root_password: "{{ default_password }}"
+  #   ssh_authorized_key: "{{ default_ssh_public_key }}"
+
+  # - name: "master3.{{ domain }}"
+  #   base_path: "{{ template_images_dir }}/alma9_base.qcow2"
+  #   disk_path: "{{ vm_images_dir }}/master3.qcow2"
+  #   memory_mb: 8196
+  #   vcpus: 4
+  #   root_password: "{{ default_password }}"
+  #   ssh_authorized_key: "{{ default_ssh_public_key }}"
+    
+  # - name: "worker1.{{ domain }}"
+  #   base_path: "{{ template_images_dir }}/alma9_base.qcow2"
+  #   disk_path: "{{ vm_images_dir }}/worker1.qcow2"
+  #   memory_mb: 8196
+  #   vcpus: 4
+  #   root_password: "{{ default_password }}"
+  #   ssh_authorized_key: "{{ default_ssh_public_key }}"
+
+  # - name: "worker2.{{ domain }}"
+  #   base_path: "{{ template_images_dir }}/alma9_base.qcow2"
+  #   disk_path: "{{ vm_images_dir }}/worker2.qcow2"
+  #   memory_mb: 8196
+  #   vcpus: 4
+  #   root_password: "{{ default_password }}"
+  #   ssh_authorized_key: "{{ default_ssh_public_key }}"
+
+  # - name: "worker3.{{ domain }}"
+  #   base_path: "{{ template_images_dir }}/alma9_base.qcow2"
+  #   disk_path: "{{ vm_images_dir }}/worker3.qcow2"
+  #   memory_mb: 8196
+  #   vcpus: 4
+  #   root_password: "{{ default_password }}"
+  #   ssh_authorized_key: "{{ default_ssh_public_key }}"

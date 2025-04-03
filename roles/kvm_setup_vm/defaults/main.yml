@@ -5,11 +5,12 @@ template_images_dir: /var/lib/libvirt/images/templates
 vm_images_dir: /var/lib/libvirt/images
 default_password: "{{ lookup('amazon.aws.aws_ssm', '/kvm/vm_root_password', region='us-east-2' )}}"
 default_ssh_public_key: "{{ lookup('amazon.aws.aws_ssm', '/kvm/vm_root_pub_key', region='us-east-2' )}}"
+force_customize: false
 
 vm_instances:
-  - name: test-vm
+  - name: test1
     base_path: "{{ template_images_dir }}/alma85_base.qcow2"
-    disk_path: "{{ vm_images_dir }}/web01.qcow2"
+    disk_path: "{{ vm_images_dir }}/test1.qcow2"
     memory_mb: 4096
     vcpus: 2
     root_password: "{{ default_password }}"

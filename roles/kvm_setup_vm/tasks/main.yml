@@ -16,6 +16,27 @@
   loop_control:
     label: "{{ item.item.name }}"
 
+- name: Check if VM disk exists
+  stat:
+    path: "{{ item.disk_path }}"
+  register: disk_exists
+  loop: "{{ vm_instances }}"
+  loop_control:
+    label: "{{ item.name }}"
+    index_var: disk_index
+
+- name: Create VM disks from templates
+  copy:
+    src: "{{ item.base_path }}"
+    dest: "{{ item.disk_path }}"
+    remote_src: yes
+  loop: "{{ vm_instances }}"
+  loop_control:
+    label: "{{ item.name }}"
+    index_var: disk_index
+  when: not disk_exists.results[disk_index].stat.exists
+  register: disk_created
+
 - name: VM creation and management
   block:
     - name: Generate VM libvirt XML
@@ -38,7 +59,7 @@
 
     - name: Define VM using XML
       community.libvirt.virt:
-        name: "{{ item.name }}"
+        # name: "{{ item.name }}"
         command: define
         xml: "{{ item_xml.results[index].stdout }}"
       loop: "{{ vm_instances }}"
@@ -65,7 +86,10 @@
       loop: "{{ vm_instances }}"
       loop_control:
         label: "{{ item.name }}"
-      when: item.customize | default(true)
+      when: 
+        - item.customize | default(true)
+        - disk_created.changed | default(false) or force_customize | default(false)
+      register: customize_result
 
     - name: Start VMs
       community.libvirt.virt:
