@@ -1,7 +1,0 @@
----
-- name: Base Linux Setup
-  hosts: all
-  become: true
-  roles:
-  - ../../roles/linux_init
-  - ../../roles/tailscale
