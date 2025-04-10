@@ -4,14 +4,15 @@ domain: okd.skylarhoughtongithub.com
 default_password: "{{ lookup('amazon.aws.aws_ssm', '/kvm/vm_root_password', region='us-east-2' )}}"
 default_ssh_public_key: "{{ lookup('amazon.aws.aws_ssm', '/kvm/vm_root_pub_key', region='us-east-2' )}}"
 
-# vm_instances:
-#   - name: "bastion.{{ domain }}"
-#     base_path: "{{ template_images_dir }}/alma9_base.qcow2"
-#     disk_path: "{{ vm_images_dir }}/bastion.qcow2"
-#     memory_mb: 4096
-#     vcpus: 2
-#     root_password: "{{ default_password }}"
-#     ssh_authorized_key: "{{ default_ssh_public_key }}"
+vm_instances:
+  - name: "bastion.{{ domain }}"
+    base_path: "{{ template_images_dir }}/alma9_base.qcow2"
+    disk_path: "{{ vm_images_dir }}/bastion.qcow2"
+    memory_mb: 4096
+    vcpus: 2
+    root_password: "{{ default_password }}"
+    ssh_authorized_key: "{{ default_ssh_public_key }}"
+    enable_autostart: true
 
   # - name: "master1.{{ domain }}"
   #   base_path: "{{ template_images_dir }}/alma9_base.qcow2"
