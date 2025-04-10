@@ -1,7 +1,0 @@
----
-- name: Install Apache 
-  hosts: web
-  remote_user: shoutsky
-  become: true
-  roles:
-   - ../roles/apache

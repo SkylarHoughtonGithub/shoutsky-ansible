@@ -1,9 +1,0 @@
----
-# Task 4
-- hosts: all
-  become: True
-  remote_user: vagrant
-  roles:
-  - ../roles/sshd
-  
-

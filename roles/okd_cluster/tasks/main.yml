@@ -1,0 +1,209 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for okd_cluster
+- name: Install required packages
+  package:
+    name:
+      - libvirt
+      - qemu-kvm
+      - virt-install
+      - libvirt-daemon-driver-network
+      - virt-manager
+      - python3-libvirt
+      - python3-lxml
+    state: present
+
+- name: Enable and start libvirtd
+  systemd:
+    name: libvirtd
+    enabled: yes
+    state: started
+
+- name: Create VM storage directory
+  file:
+    path: "{{ vm_storage_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Download base image if needed
+  get_url:
+    url: "{{ base_image_url }}"
+    dest: "{{ base_image_path }}"
+    mode: '0644'
+  register: base_image
+
+- name: Create bridge network for OKD
+  virt_net:
+    command: define
+    name: "{{ network_name }}"
+    xml: |
+      <network>
+        <name>{{ network_name }}</name>
+        <forward mode='nat'/>
+        <bridge name='{{ bridge_name }}' stp='on' delay='0'/>
+        <ip address='{{ network_gateway }}' netmask='{{ network_netmask }}'>
+          <dhcp>
+            <range start='{{ network_range_start }}' end='{{ network_range_end }}'/>
+          </dhcp>
+        </ip>
+      </network>
+  register: network_result
+
+- name: Start network
+  virt_net:
+    command: start
+    name: "{{ network_name }}"
+    state: active
+  when: network_result is changed
+
+- name: Enable autostart for network
+  virt_net:
+    name: "{{ network_name }}"
+    autostart: yes
+
+# Create load balancer VM
+- name: Create load balancer disk
+  command: >
+    qemu-img create -f qcow2 -o backing_file={{ base_image_path }},backing_fmt=qcow2
+    {{ vm_storage_path }}/okd-lb.qcow2 {{ lb_node_disk }}G
+  args:
+    creates: "{{ vm_storage_path }}/okd-lb.qcow2"
+
+- name: Define load balancer VM
+  virt:
+    command: define
+    xml: |
+      <domain type='kvm'>
+        <name>okd-lb</name>
+        <memory unit='MiB'>{{ lb_node_memory }}</memory>
+        <vcpu>{{ lb_node_vcpus }}</vcpu>
+        <os>
+          <type arch='x86_64'>hvm</type>
+          <boot dev='hd'/>
+        </os>
+        <features>
+          <acpi/>
+          <apic/>
+        </features>
+        <devices>
+          <disk type='file' device='disk'>
+            <driver name='qemu' type='qcow2'/>
+            <source file='{{ vm_storage_path }}/okd-lb.qcow2'/>
+            <target dev='vda' bus='virtio'/>
+          </disk>
+          <interface type='network'>
+            <source network='{{ network_name }}'/>
+            <model type='virtio'/>
+          </interface>
+          <console type='pty'/>
+          <graphics type='vnc' port='-1' autoport='yes' listen='0.0.0.0'>
+            <listen type='address' address='0.0.0.0'/>
+          </graphics>
+        </devices>
+      </domain>
+
+# Create control plane nodes
+- name: Create control plane VM disks
+  command: >
+    qemu-img create -f qcow2 -o backing_file={{ base_image_path }} 
+    {{ vm_storage_path }}/okd-control-{{ item }}.qcow2 {{ control_node_disk }}G
+  args:
+    creates: "{{ vm_storage_path }}/okd-control-{{ item }}.qcow2"
+  with_sequence: start=1 end={{ control_node_count }}
+
+- name: Define control plane VMs
+  virt:
+    command: define
+    xml: |
+      <domain type='kvm'>
+        <name>okd-control-{{ item }}</name>
+        <memory unit='MiB'>{{ control_node_memory }}</memory>
+        <vcpu>{{ control_node_vcpus }}</vcpu>
+        <os>
+          <type arch='x86_64'>hvm</type>
+          <boot dev='hd'/>
+        </os>
+        <features>
+          <acpi/>
+          <apic/>
+        </features>
+        <devices>
+          <disk type='file' device='disk'>
+            <driver name='qemu' type='qcow2'/>
+            <source file='{{ vm_storage_path }}/okd-control-{{ item }}.qcow2'/>
+            <target dev='vda' bus='virtio'/>
+          </disk>
+          <interface type='network'>
+            <source network='{{ network_name }}'/>
+            <model type='virtio'/>
+          </interface>
+          <console type='pty'/>
+          <graphics type='vnc' port='-1' autoport='yes' listen='0.0.0.0'>
+            <listen type='address' address='0.0.0.0'/>
+          </graphics>
+        </devices>
+      </domain>
+  with_sequence: start=1 end={{ control_node_count }}
+
+# Create compute nodes
+- name: Create compute VM disks
+  command: >
+    qemu-img create -f qcow2 -o backing_file={{ base_image_path }} 
+    {{ vm_storage_path }}/okd-compute-{{ item }}.qcow2 {{ compute_node_disk }}G
+  args:
+    creates: "{{ vm_storage_path }}/okd-compute-{{ item }}.qcow2"
+  with_sequence: start=1 end={{ compute_node_count }}
+
+- name: Define compute VMs
+  virt:
+    command: define
+    xml: |
+      <domain type='kvm'>
+        <name>okd-compute-{{ item }}</name>
+        <memory unit='MiB'>{{ compute_node_memory }}</memory>
+        <vcpu>{{ compute_node_vcpus }}</vcpu>
+        <os>
+          <type arch='x86_64'>hvm</type>
+          <boot dev='hd'/>
+        </os>
+        <features>
+          <acpi/>
+          <apic/>
+        </features>
+        <devices>
+          <disk type='file' device='disk'>
+            <driver name='qemu' type='qcow2'/>
+            <source file='{{ vm_storage_path }}/okd-compute-{{ item }}.qcow2'/>
+            <target dev='vda' bus='virtio'/>
+          </disk>
+          <interface type='network'>
+            <source network='{{ network_name }}'/>
+            <model type='virtio'/>
+          </interface>
+          <console type='pty'/>
+          <graphics type='vnc' port='-1' autoport='yes' listen='0.0.0.0'>
+            <listen type='address' address='0.0.0.0'/>
+          </graphics>
+        </devices>
+      </domain>
+  with_sequence: start=1 end={{ compute_node_count }}
+
+- name: Start LB VM
+  virt:
+    name: okd-lb
+    state: running
+  ignore_errors: yes
+
+- name: Start Control Plane VMs
+  virt:
+    name: "okd-control-{{ item }}"
+    state: running
+  with_sequence: start=1 end={{ control_node_count }}
+  ignore_errors: yes
+
+- name: Start Compute VMs
+  virt:
+    name: "okd-compute-{{ item }}"
+    state: running
+  with_sequence: start=1 end={{ compute_node_count }}
+  ignore_errors: yes

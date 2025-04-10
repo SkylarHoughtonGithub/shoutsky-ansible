@@ -1,8 +1,0 @@
----
-- hosts: localhost
-  tasks:
-  - debug:
-      msg:
-      - "{{ hostvars['localhost'].ansible_devices.sda }}"
-      - "{{ hostvars['localhost'].ansible_devices.sdb }}"
-      - "{{ hostvars['localhost'].ansible_devices.sdc }}"

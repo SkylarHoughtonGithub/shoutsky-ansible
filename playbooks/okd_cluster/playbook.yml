@@ -1,0 +1,39 @@
+# Playbook for OKD VM provisioning with libvirt
+- name: Provision VMs for OKD cluster
+  hosts: hypervisor
+  become: true
+  vars:
+    # Cluster configuration
+    control_node_count: 3
+    compute_node_count: 2
+    
+    # VM resources
+    control_node_memory: 8196  # MB
+    control_node_vcpus: 4
+    control_node_disk: 120  # GB
+    
+    compute_node_memory: 8196  # MB
+    compute_node_vcpus: 4
+    compute_node_disk: 120  # GB
+    
+    lb_node_memory: 4096  # MB
+    lb_node_vcpus: 2
+    lb_node_disk: 40  # GB
+    
+    # Network configuration
+    bridge_name: "okdbr0"
+    network_name: "okdnet"
+    network_netmask: "255.255.255.0"
+    network_range_start: "192.168.200.100"
+    network_range_end: "192.168.200.200"
+    network_gateway: "192.168.200.1"
+    network_dns: "192.168.88.1"
+    
+    # Base image for VMs
+    base_image_url: "https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-9.5-20241120.x86_64.qcow2"
+    base_image_path: "/var/lib/libvirt/images/AlmaLinux-9-GenericCloud-9.5-20241120.x86_64.qcow2"
+    
+    # Storage path
+    vm_storage_path: "/var/lib/libvirt/images/okd"
+  roles:
+    - ../../roles/okd_cluster

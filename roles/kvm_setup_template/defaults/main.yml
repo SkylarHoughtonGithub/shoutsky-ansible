@@ -1,0 +1,16 @@
+#SPDX-License-Identifier: MIT-0
+---
+create_base_templates: true
+template_images_dir: /var/lib/libvirt/images/templates
+default_password: "{{ lookup('amazon.aws.aws_ssm', '/kvm/vm_root_password', region='us-east-2' )}}"
+
+os_templates:
+  alma8.5: almalinux-8.5
+  alma9: almalinux-9
+
+default_base_templates:
+  - name: alma85_base
+    os: alma8.5
+    disk_size: 20G
+    disk_path: "{{ template_images_dir }}/alma85_base.qcow2"
+    root_password: "{{ default_password }}"

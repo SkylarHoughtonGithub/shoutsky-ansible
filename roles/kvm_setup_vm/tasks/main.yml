@@ -1,0 +1,108 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Check if base template images exist
+  stat:
+    path: "{{ item.base_path }}"
+  register: template_status
+  loop: "{{ vm_instances }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Fail if any template image doesn't exist
+  fail:
+    msg: "Template image {{ item.item.base_path }} for VM {{ item.item.name }} does not exist."
+  when: not item.stat.exists
+  loop: "{{ template_status.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+
+- name: Check if VM disk exists
+  stat:
+    path: "{{ item.disk_path }}"
+  register: disk_exists
+  loop: "{{ vm_instances }}"
+  loop_control:
+    label: "{{ item.name }}"
+    index_var: disk_index
+
+- name: Create VM disks from templates
+  copy:
+    src: "{{ item.base_path }}"
+    dest: "{{ item.disk_path }}"
+    remote_src: yes
+  loop: "{{ vm_instances }}"
+  loop_control:
+    label: "{{ item.name }}"
+    index_var: disk_index
+  when: not disk_exists.results[disk_index].stat.exists
+  register: disk_created
+
+- name: VM creation and management
+  block:
+    - name: Generate VM libvirt XML
+      command: >
+        virt-install
+        --name {{ item.name }}
+        --memory {{ item.memory_mb | default(vm_memory_mb) }}
+        --vcpus {{ item.vcpus | default(vm_vcpus) }}
+        --disk {{ item.disk_path }},format=qcow2
+        --import
+        --os-variant detect=on,require=off
+        --noautoconsole
+        --print-xml
+      register: vm_xml
+      changed_when: false
+      failed_when: false
+      loop: "{{ vm_instances }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Define VM using XML
+      community.libvirt.virt:
+        # name: "{{ item.name }}"
+        command: define
+        xml: "{{ item_xml.results[index].stdout }}"
+      loop: "{{ vm_instances }}"
+      loop_control:
+        index_var: index
+        label: "{{ item.name }}"
+      vars:
+        item_xml: "{{ vm_xml }}"
+      when: item_xml.results[index].rc == 0
+
+    - name: Basic VM customization
+      command: >
+        virt-customize -a {{ item.disk_path }}
+        --hostname {{ item.name }}
+        {% if item.root_password is defined %}
+        --root-password password:{{ item.root_password }}
+        {% endif %}
+        {% if item.ssh_authorized_key is defined %}
+        --ssh-inject root:string:"{{ item.ssh_authorized_key }}"
+        {% endif %}
+        {% if item.firstboot_commands is defined %}
+        --firstboot-command "{{ item.firstboot_commands | join(' && ') }}"
+        {% endif %}
+      loop: "{{ vm_instances }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: 
+        - item.customize | default(true)
+        - disk_created.changed | default(false) or force_customize | default(false)
+      register: customize_result
+
+    - name: Start VMs
+      community.libvirt.virt:
+        name: "{{ item.name }}"
+        state: running
+      loop: "{{ vm_instances }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Enable autostart for VMs
+      command: "virsh autostart {{ item.name }}"
+      loop: "{{ vm_instances }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: 
+        - item.enable_autostart | default(true)

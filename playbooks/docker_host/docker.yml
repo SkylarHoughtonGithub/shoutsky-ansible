@@ -1,0 +1,8 @@
+---
+- name: Install docker
+  hosts: all
+  remote_user: shoutsky
+  become: true
+  roles:
+  - ../roles/linux_init
+  - ../roles/docker

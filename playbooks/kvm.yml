@@ -1,6 +1,0 @@
----
-- name: Set up KVM infrastructure for OpenShift
-  hosts: hypervisor
-  become: true
-  roles:
-  - ../roles/kvm

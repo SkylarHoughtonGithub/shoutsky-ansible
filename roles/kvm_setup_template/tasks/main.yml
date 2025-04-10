@@ -1,0 +1,32 @@
+---
+# tasks file for kvm_setup_template
+- name: Ensure template images directory exists
+  file:
+    path: "{{ template_images_dir }}"
+    state: directory
+    mode: '0755'
+    
+- name: Create base template images
+  command: >
+    virt-builder {{ os_templates[item.os] }}
+    --format qcow2
+    --size {{ item.disk_size }}
+    -o {{ item.disk_path }}
+    --root-password password:{{ item.root_password }}
+  args:
+    creates: "{{ item.disk_path }}"
+  loop: "{{ base_templates }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: 
+    - create_base_templates
+    - item.iso_path is not defined
+
+- name: Download cloud images for custom templates
+  get_url:
+    url: "{{ item.iso_path }}"
+    dest: "{{ item.disk_path }}"
+  loop: "{{ base_templates }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.iso_path is defined

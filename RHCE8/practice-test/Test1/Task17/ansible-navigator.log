@@ -1,5 +1,0 @@
-230124043157.412 ERROR 'ansible_navigator.actions.collections._parse' Unable to extract collection json from stdout
-230124043201.544 ERROR 'ansible_navigator.actions.config._run_runner' Error occurred while fetching ansible config (list): 'Error: statfs /dev/mqueue: no such file or directory
-'
-230124043201.545 ERROR 'ansible_navigator.actions.config._run_runner' Error occurred while fetching ansible config (dump): 'Error: statfs /dev/mqueue: no such file or directory
-'

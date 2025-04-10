@@ -1,0 +1,78 @@
+---
+# tasks/main.yml - Main KVM role tasks
+
+# KVM Installation Block
+- name: Install and Configure KVM
+  block:
+    - name: Check for cpu virtualization support
+      shell: grep -E 'vmx|svm' /proc/cpuinfo
+      register: virt_extensions
+      failed_when: virt_extensions.rc != 0
+      changed_when: false
+    
+    - name: Ensure directory for VM images exists
+      file:
+        path: "/var/lib/libvirt/images"
+        state: directory
+        mode: '0755'
+
+    - name: Install KVM and related packages
+      package:
+        name: "{{ kvm_packages }}"
+        state: present
+
+    - name: Check if KVM modules are loaded
+      shell: lsmod | grep -i kvm
+      register: kvm_modules
+      failed_when: kvm_modules.rc != 0
+      changed_when: false
+
+    - name: Enable and start kvm services
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      with_items:
+      - cockpit.socket
+      - libvirtd
+  when: install_kvm | bool
+
+# Configure KVM Bridge Networking Block
+- name: Configure KVM NAT Networking
+  block:
+    - name: Create NAT network XML definition file
+      template:
+        src: nat-xml.j2
+        dest: "/tmp/nat-{{ nat_network_name }}.xml"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Define libvirt NAT network
+      command: "virsh net-define /tmp/nat-{{ nat_network_name }}.xml"
+      register: net_define
+      changed_when: net_define.rc == 0
+      failed_when: net_define.rc != 0 and 'already exists' not in net_define.stderr
+
+    - name: Start libvirt NAT network
+      command: "virsh net-start {{ nat_network_name }}"
+      register: net_start
+      changed_when: net_start.rc == 0
+      failed_when: net_start.rc != 0 and 'already active' not in net_start.stderr
+
+    - name: Set libvirt NAT network to autostart
+      command: "virsh net-autostart {{ nat_network_name }}"
+      register: net_autostart
+      changed_when: net_autostart.rc == 0
+      failed_when: net_autostart.rc != 0 and 'already marked' not in net_autostart.stderr
+      
+    - name: Configure firewalld for masquerading (if enabled)
+      firewalld:
+        zone: public
+        masquerade: yes
+        permanent: yes
+        state: enabled
+      when: use_firewalld | bool
+      notify: restart firewalld
+
+  when: create_nat_network | bool

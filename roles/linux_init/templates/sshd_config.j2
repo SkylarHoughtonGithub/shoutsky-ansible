@@ -1,0 +1,43 @@
+# sshd_config template managed by Ansible
+# Security hardened SSH configuration
+
+# Basic SSH server configuration
+Port {{ ssh_port }}
+Protocol 2
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+
+# Logging
+SyslogFacility AUTH
+LogLevel INFO
+
+# Authentication settings
+LoginGraceTime 60
+PermitRootLogin no
+StrictModes yes
+MaxAuthTries 4
+MaxSessions 10
+
+# Only allow specified users if defined
+{% if allowed_ssh_users | length > 0 %}
+AllowUsers {{ allowed_ssh_users | join(' ') }}
+{% endif %}
+
+# Security options
+PermitEmptyPasswords no
+PasswordAuthentication yes
+ChallengeResponseAuthentication no
+UsePAM yes
+X11Forwarding no
+PrintMotd no
+TCPKeepAlive yes
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+# Allow public key authentication
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+
+# SFTP configuration
+Subsystem sftp /usr/lib/openssh/sftp-server
