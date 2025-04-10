@@ -1,4 +1,4 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # defaults file for tailscale
-tailscale_key: lookup('amazon.aws.aws_ssm', 'tailscale_key', region='us-east-2' )
+tailscale_key: "{{ lookup('amazon.aws.aws_ssm', 'tailscale_key', region='us-east-2' ) }}"

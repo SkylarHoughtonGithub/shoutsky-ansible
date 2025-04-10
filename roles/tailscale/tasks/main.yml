@@ -18,13 +18,8 @@
     --authkey={{ tailscale_key }}
     --reset
 
-- name: Verify Tailscale healthy and running
-  ansible.builtin.command: tailscale status
-  register: tailscale_status
+- name: Verify Tailscale service status
+  ansible.builtin.command: systemctl is-active tailscaled
+  register: tailscale_active
   changed_when: false
-  failed_when: "'Tailscale is running' not in tailscale_status.stdout"
-
-- name: Show Tailscale status
-  ansible.builtin.debug:
-    var: tailscale_status.stdout_lines
-  when: tailscale_status is defined
+  failed_when: tailscale_active.stdout != "active"

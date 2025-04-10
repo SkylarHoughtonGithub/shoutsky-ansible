@@ -98,3 +98,11 @@
       loop: "{{ vm_instances }}"
       loop_control:
         label: "{{ item.name }}"
+
+    - name: Enable autostart for VMs
+      command: "virsh autostart {{ item.name }}"
+      loop: "{{ vm_instances }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: 
+        - item.enable_autostart | default(true)
