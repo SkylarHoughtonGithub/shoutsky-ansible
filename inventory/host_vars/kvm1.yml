@@ -1,14 +1,28 @@
 ---
+create_nat_network: true
 domain: okd.skylarhoughtongithub.com
-
 default_password: "{{ lookup('amazon.aws.aws_ssm', '/kvm/vm_root_password', region='us-east-2' )}}"
 default_ssh_public_key: "{{ lookup('amazon.aws.aws_ssm', '/kvm/vm_root_pub_key', region='us-east-2' )}}"
+
+base_templates:
+    - name: alma85_base
+      os: alma8.5
+      disk_size: 20G
+      disk_path: "{{ template_images_dir }}/alma85_base.qcow2"
+      root_password: "{{ default_password }}"
+    - name: alma9_base
+      os: alma9
+      disk_size: 20G
+      disk_path: "{{ template_images_dir }}/alma9_base.qcow2"
+      root_password: "{{ default_password }}"
+      iso_path: https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2
 
 vm_instances:
   - name: "bastion.{{ domain }}"
     base_path: "{{ template_images_dir }}/alma9_base.qcow2"
     disk_path: "{{ vm_images_dir }}/bastion.qcow2"
     memory_mb: 4096
+    network: br0
     vcpus: 2
     root_password: "{{ default_password }}"
     ssh_authorized_key: "{{ default_ssh_public_key }}"

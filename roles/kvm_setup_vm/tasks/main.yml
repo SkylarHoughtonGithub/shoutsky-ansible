@@ -46,6 +46,7 @@
         --memory {{ item.memory_mb | default(vm_memory_mb) }}
         --vcpus {{ item.vcpus | default(vm_vcpus) }}
         --disk {{ item.disk_path }},format=qcow2
+        --network network={{ item.network }}
         --import
         --os-variant detect=on,require=off
         --noautoconsole
