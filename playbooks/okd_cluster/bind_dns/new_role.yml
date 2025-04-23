@@ -1,0 +1,556 @@
+# Ansible Role: bind_dns
+
+This Ansible role installs and configures Bind DNS server for OpenShift Container Platform (OCP) on RHEL/CentOS systems.
+
+## Role Structure
+
+```
+bind_dns/
+├── defaults/
+│   └── main.yml
+├── files/
+│   └── set-dns-serial.sh
+├── handlers/
+│   └── main.yml
+├── meta/
+│   └── main.yml
+├── tasks/
+│   ├── main.yml
+│   ├── install.yml
+│   └── configure.yml
+├── templates/
+│   ├── named.conf.j2
+│   ├── zonefile.j2
+│   └── reverse.j2
+├── tests/
+│   ├── inventory
+│   └── test.yml
+├── vars/
+│   └── main.yml
+└── README.md
+```
+
+## Role Content
+
+### defaults/main.yml
+```yaml
+---
+# Default variables for the Bind DNS server role
+
+# Bind DNS package names
+bind_packages:
+  - bind
+  - bind-utils
+
+# DNS service name
+dns_service: named
+
+# DNS configuration directory
+named_conf_dir: /etc/
+
+# Main configuration file
+named_conf_file: "{{ named_conf_dir }}/named.conf"
+
+# Zone files directory
+zone_dir: /var/named
+
+# DNS serial number script path
+serial_script_path: /usr/local/bin/set-dns-serial.sh
+
+# Serial number file path
+serial_file_path: /usr/local/src/dnsserial-DO_NOT_DELETE_BEFORE_ASKING_CHRISTIAN.txt
+
+# DNS domain information
+dns:
+  domain: example.com
+  clusterid: ocp4
+  forwarder1: 8.8.8.8
+  forwarder2: 8.8.4.4
+
+# IP Network information
+dns_network:
+  domain: example.com
+  clusterid: ocp4
+  host_prefix: 24
+  ipid: 100
+  machinenetwork: 192.168.100.0
+
+# DNS Records for OpenShift
+dns_records:
+  # OpenShift API and apps endpoints
+  - hostname: api
+    ipaddr: 192.168.100.5
+  - hostname: api-int
+    ipaddr: 192.168.100.5
+  - hostname: "*.apps"
+    ipaddr: 192.168.100.5
+  
+  # Bootstrap node
+  - hostname: bootstrap
+    ipaddr: 192.168.100.10
+  
+  # Master nodes
+  - hostname: master-0
+    ipaddr: 192.168.100.11
+  - hostname: master-1
+    ipaddr: 192.168.100.12
+  - hostname: master-2
+    ipaddr: 192.168.100.13
+  
+  # Worker nodes
+  - hostname: worker-0
+    ipaddr: 192.168.100.20
+  - hostname: worker-1
+    ipaddr: 192.168.100.21
+
+  # Services
+  - hostname: bastion
+    ipaddr: 192.168.100.254
+
+# ETCD SRV Records
+etcd_srv_records:
+  - name: etcd-0
+    priority: 0
+    weight: 10
+    port: 2380
+    target: master-0
+    ipaddr: 192.168.100.11
+  - name: etcd-1
+    priority: 0
+    weight: 10
+    port: 2380
+    target: master-1
+    ipaddr: 192.168.100.12
+  - name: etcd-2
+    priority: 0
+    weight: 10
+    port: 2380
+    target: master-2
+    ipaddr: 192.168.100.13
+```
+
+### files/set-dns-serial.sh
+```bash
+#!/bin/bash
+dnsserialfile=/usr/local/src/dnsserial-DO_NOT_DELETE_BEFORE_ASKING_CHRISTIAN.txt
+zonefile=/var/named/zonefile.db
+if [ -f zonefile ] ; then
+	echo $[ $(grep serial ${zonefile}  | tr -d "\t"" ""\n"  | cut -d';' -f 1) + 1 ] | tee ${dnsserialfile}
+else
+	if [ ! -f ${dnsserialfile} ] || [ ! -s ${dnsserialfile} ]; then
+		echo $(date +%Y%m%d00) | tee ${dnsserialfile}
+	else
+		echo $[ $(< ${dnsserialfile}) + 1 ] | tee ${dnsserialfile}
+	fi
+fi
+##
+##-30-
+```
+
+### handlers/main.yml
+```yaml
+---
+# Handlers for Bind DNS server
+
+- name: restart bind
+  ansible.builtin.systemd:
+    name: "{{ dns_service }}"
+    state: restarted
+    daemon_reload: yes
+  become: true
+```
+
+### tasks/main.yml
+```yaml
+---
+# Main tasks file for Bind DNS server role
+
+- name: Include install tasks
+  ansible.builtin.import_tasks: install.yml
+  tags:
+    - bind
+    - bind_install
+
+- name: Include configure tasks
+  ansible.builtin.import_tasks: configure.yml
+  tags:
+    - bind
+    - bind_configure
+```
+
+### tasks/install.yml
+```yaml
+---
+# Installation tasks for Bind DNS server
+
+- name: Install Bind DNS server packages
+  ansible.builtin.package:
+    name: "{{ bind_packages }}"
+    state: present
+  become: true
+  tags:
+    - bind_install
+
+- name: Enable Bind DNS service at boot
+  ansible.builtin.systemd:
+    name: "{{ dns_service }}"
+    enabled: yes
+  become: true
+  tags:
+    - bind_install
+
+- name: Copy DNS serial number script
+  ansible.builtin.copy:
+    src: set-dns-serial.sh
+    dest: "{{ serial_script_path }}"
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+  tags:
+    - bind_install
+```
+
+### tasks/configure.yml
+```yaml
+---
+# Configuration tasks for Bind DNS server
+
+- name: Setup named configuration files
+  block:
+    - name: Write out named.conf file
+      ansible.builtin.template:
+        src: named.conf.j2
+        dest: "{{ named_conf_file }}"
+        owner: root
+        group: named
+        mode: '0640'
+      become: true
+      notify:
+        - restart bind
+      tags:
+        - bind_configure
+
+    - name: Set zone serial number
+      ansible.builtin.shell: "{{ serial_script_path }}"
+      register: dymanicserialnumber
+      changed_when: true
+      tags:
+        - bind_configure
+
+    - name: Setting serial number as a fact
+      ansible.builtin.set_fact:
+        serialnumber: "{{ dymanicserialnumber.stdout }}"
+      tags:
+        - bind_configure
+
+    - name: Write out "{{ dns.domain | lower }}" zone file
+      ansible.builtin.template:
+        src: zonefile.j2
+        dest: "{{ zone_dir }}/zonefile.db"
+        owner: root
+        group: named
+        mode: '0644'
+      become: true
+      notify:
+        - restart bind
+      tags:
+        - bind_configure
+
+    - name: Write out reverse zone file
+      ansible.builtin.template:
+        src: reverse.j2
+        dest: "{{ zone_dir }}/reverse.db"
+        owner: root
+        group: named
+        mode: '0644'
+      become: true
+      notify:
+        - restart bind
+      tags:
+        - bind_configure
+
+    - name: Ensure Bind DNS service is running
+      ansible.builtin.systemd:
+        name: "{{ dns_service }}"
+        state: started
+      become: true
+      tags:
+        - bind_configure
+```
+
+### templates/named.conf.j2
+```
+//
+// named.conf
+// Generated by Ansible
+//
+
+options {
+        listen-on port 53 { 127.0.0.1; {{ ansible_default_ipv4.address }}; };
+        listen-on-v6 port 53 { ::1; };
+        directory       "/var/named";
+        dump-file       "/var/named/data/cache_dump.db";
+        statistics-file "/var/named/data/named_stats.txt";
+        memstatistics-file "/var/named/data/named_mem_stats.txt";
+        secroots-file   "/var/named/data/named.secroots";
+        recursing-file  "/var/named/data/named.recursing";
+        allow-query     { localhost; {{ dns_network.machinenetwork }}/{{ dns_network.host_prefix }}; };
+        allow-query-cache { localhost; {{ dns_network.machinenetwork }}/{{ dns_network.host_prefix }}; };
+
+        /*
+         - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
+         - If you are building a RECURSIVE (caching) DNS server, you need to enable
+           recursion.
+         - If your recursive DNS server has a public IP address, you MUST enable access
+           control to limit queries to your legitimate users. Failing to do so will
+           cause your server to become part of large scale DNS amplification
+           attacks. Implementing BCP38 within your network would greatly
+           reduce such attack surface
+        */
+        recursion yes;
+
+        /* Fowarders */
+        forwarders {
+                {{ dns.forwarder1 }};
+                {{ dns.forwarder2 }};
+        };
+
+        dnssec-enable yes;
+        dnssec-validation yes;
+
+        managed-keys-directory "/var/named/dynamic";
+
+        pid-file "/run/named/named.pid";
+        session-keyfile "/run/named/session.key";
+
+        /* https://fedoraproject.org/wiki/Changes/CryptoPolicy */
+        include "/etc/crypto-policies/back-ends/bind.config";
+};
+
+logging {
+        channel default_debug {
+                file "data/named.run";
+                severity dynamic;
+        };
+};
+
+zone "." IN {
+        type hint;
+        file "named.ca";
+};
+
+include "/etc/named.rfc1912.zones";
+include "/etc/named.root.key";
+
+// Domain zone for {{ dns.domain }}
+zone "{{ dns.domain }}" IN {
+        type master;
+        file "zonefile.db";
+        allow-update { none; };
+};
+
+// Reverse zone for {{ dns_network.machinenetwork }}
+zone "{{ dns_network.ipid }}.168.192.in-addr.arpa" IN {
+        type master;
+        file "reverse.db";
+        allow-update { none; };
+};
+```
+
+### templates/zonefile.j2
+```
+$TTL 86400
+@       IN      SOA     bastion.{{ dns.domain }}. admin.{{ dns.domain }}. (
+                         {{ serialnumber }}        ; Serial
+                                86400        ; Refresh
+                                3600         ; Retry
+                                86400        ; Expire
+                                3600 )       ; Negative Cache TTL
+;
+@       IN      NS      bastion.{{ dns.domain }}.
+
+{% for item in dns_records %}
+{{ item.hostname }}     IN      A       {{ item.ipaddr }}
+{% endfor %}
+
+; OpenShift Internal SRV Records
+{% for item in etcd_srv_records %}
+_etcd-server-ssl._tcp.{{ dns.clusterid }}  IN    SRV   {{ item.priority }} {{ item.weight }} {{ item.port }} {{ item.name }}.{{ dns.clusterid }}
+{{ item.name }}.{{ dns.clusterid }}        IN    A     {{ item.ipaddr }}
+{% endfor %}
+```
+
+### templates/reverse.j2
+```
+$TTL 86400
+@       IN      SOA     bastion.{{ dns.domain }}. admin.{{ dns.domain }}. (
+                         {{ serialnumber }}        ; Serial
+                                86400        ; Refresh
+                                3600         ; Retry
+                                86400        ; Expire
+                                3600 )       ; Negative Cache TTL
+;
+@       IN      NS      bastion.{{ dns.domain }}.
+
+{% for item in dns_records %}
+{{ item.ipaddr.split('.')[-1] }}      IN    PTR    {{ item.hostname }}.{{ dns.domain }}.
+{% endfor %}
+```
+
+### meta/main.yml
+```yaml
+---
+galaxy_info:
+  role_name: bind_dns
+  author: Your Name
+  description: Installs and configures Bind DNS server for OpenShift Container Platform
+  company: Your Company
+  license: MIT
+  min_ansible_version: 2.10
+  platforms:
+    - name: EL
+      versions:
+        - 7
+        - 8
+        - 9
+  galaxy_tags:
+    - dns
+    - bind
+    - openshift
+    - ocp
+    - networking
+    - system
+
+dependencies: []
+```
+
+### tests/inventory
+```
+localhost
+```
+
+### tests/test.yml
+```yaml
+---
+- hosts: localhost
+  remote_user: root
+  roles:
+    - bind_dns
+```
+
+### vars/main.yml
+```yaml
+---
+# Variable file for Bind DNS server
+# Override these in your playbooks or inventory
+```
+
+### README.md
+```markdown
+# Ansible Role: Bind DNS Server for OpenShift
+
+This Ansible role installs and configures a Bind DNS server on RHEL/CentOS systems for use with OpenShift Container Platform.
+
+## Requirements
+
+- RHEL/CentOS 7, 8, or 9
+
+## Role Variables
+
+Available variables are listed below, along with default values (see `defaults/main.yml`):
+
+```yaml
+# Bind DNS package names
+bind_packages:
+  - bind
+  - bind-utils
+
+# DNS domain information
+dns:
+  domain: example.com
+  clusterid: ocp4
+  forwarder1: 8.8.8.8
+  forwarder2: 8.8.4.4
+
+# IP Network information
+dns_network:
+  domain: example.com
+  clusterid: ocp4
+  host_prefix: 24
+  ipid: 100
+  machinenetwork: 192.168.100.0
+
+# DNS Records for OpenShift
+dns_records:
+  # OpenShift API and apps endpoints
+  - hostname: api
+    ipaddr: 192.168.100.5
+  # Add more DNS records here
+```
+
+## Example Playbook
+
+```yaml
+- hosts: dns_servers
+  vars:
+    dns:
+      domain: lab.example.org
+      clusterid: ocp4
+      forwarder1: 192.168.1.1
+      forwarder2: 1.1.1.1
+    
+    dns_network:
+      domain: lab.example.org
+      clusterid: ocp4
+      host_prefix: 24
+      ipid: 10
+      machinenetwork: 192.168.10.0
+    
+    dns_records:
+      - hostname: api
+        ipaddr: 192.168.10.5
+      - hostname: api-int
+        ipaddr: 192.168.10.5
+      - hostname: "*.apps"
+        ipaddr: 192.168.10.5
+      - hostname: bootstrap
+        ipaddr: 192.168.10.10
+      - hostname: master-0
+        ipaddr: 192.168.10.11
+  
+  roles:
+    - bind_dns
+```
+
+## Post-Installation
+
+After installing and configuring the DNS server, you may want to:
+
+1. Configure your clients to use this DNS server:
+   ```
+   nmcli connection modify <connection-name> ipv4.dns <dns-server-ip>
+   nmcli connection reload
+   nmcli connection up <connection-name>
+   ```
+
+2. Open firewall ports:
+   ```
+   firewall-cmd --add-service=dns --permanent
+   firewall-cmd --reload
+   ```
+
+3. Test DNS resolution:
+   ```
+   dig @<dns-server-ip> -t srv _etcd-server-ssl._tcp.ocp4.example.com
+   host bootstrap.ocp4.example.com
+   ```
+
+## License
+
+MIT
+
+## Author Information
+
+This role was created by Your Name in 2025.
+```
