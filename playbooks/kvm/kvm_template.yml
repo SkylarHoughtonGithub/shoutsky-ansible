@@ -2,19 +2,5 @@
 - name: Set up KVM Templates
   hosts: virt_hosts
   become: true
-  vars:
-    base_templates:
-    - name: alma85_base
-      os: alma8.5
-      disk_size: 20G
-      disk_path: "{{ template_images_dir }}/alma85_base.qcow2"
-      root_password: "{{ default_password }}"
-    - name: alma9_base
-      os: alma9
-      disk_size: 20G
-      disk_path: "{{ template_images_dir }}/alma9_base.qcow2"
-      root_password: "{{ default_password }}"
-      iso_path: https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2
-
   roles:
   - ../../roles/kvm_setup_template
