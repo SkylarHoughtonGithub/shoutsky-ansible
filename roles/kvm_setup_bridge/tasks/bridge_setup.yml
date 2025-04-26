@@ -1,0 +1,93 @@
+### tasks/bridge_setup.yml
+---
+- name: Install required packages
+  ansible.builtin.package:
+    name:
+      - bridge-utils
+      - NetworkManager
+    state: present
+
+- name: Get existing network connection name for {{ bridge_configuration.interface }}
+  ansible.builtin.shell: nmcli -g NAME connection show | grep -E "({{ bridge_configuration.interface }}|{{ bridge_configuration.interface }}-\w+)"
+  register: existing_connection
+  changed_when: false
+  failed_when: false
+
+- name: Remove IP from physical interface
+  ansible.builtin.command: "nmcli connection modify {{ existing_connection.stdout }} ipv4.method disabled"
+  when: bridge_configuration.create and existing_connection.stdout == ""
+  register: connection_modified
+  changed_when: connection_modified.rc == 0
+
+- name: Check if bridge already exists
+  ansible.builtin.command: "nmcli connection show {{ bridge_configuration.name }}"
+  register: bridge_exists
+  changed_when: false
+  failed_when: false
+
+- name: Create bridge connection
+  ansible.builtin.command: "nmcli connection add type bridge con-name {{ bridge_configuration.name }} ifname {{ bridge_configuration.name }}"
+  when: bridge_configuration.create and bridge_exists.rc != 0
+  register: bridge_created
+  changed_when: bridge_created.rc == 0
+
+- name: Configure bridge with static IP
+  ansible.builtin.command: >
+    nmcli connection modify {{ bridge_configuration.name }}
+    ipv4.method manual
+    ipv4.addresses "{{ bridge_configuration.ip_address }}"
+    ipv4.gateway "{{ bridge_configuration.gateway }}"
+    ipv4.dns "{{ bridge_configuration.dns }}"
+  when: bridge_configuration.create and bridge_configuration.ip_method == "static"
+  register: bridge_configured
+  changed_when: bridge_configured.rc == 0
+
+- name: Configure bridge with DHCP
+  ansible.builtin.command: "nmcli connection modify {{ bridge_configuration.name }} ipv4.method auto"
+  when: bridge_configuration.create and bridge_configuration.ip_method == "dhcp"
+  register: bridge_configured_dhcp
+  changed_when: bridge_configured_dhcp.rc == 0
+
+- name: Check if bridge port already exists
+  ansible.builtin.command: "nmcli connection show bridge-{{ bridge_configuration.interface }}"
+  register: bridge_port_exists
+  changed_when: false
+  failed_when: false
+
+- name: Add interface to bridge
+  ansible.builtin.command: >
+    nmcli connection add type ethernet 
+    slave-type bridge 
+    con-name bridge-{{ bridge_configuration.interface }} 
+    ifname {{ bridge_configuration.interface }} 
+    master {{ bridge_configuration.name }}
+  when: bridge_configuration.create and bridge_port_exists.rc != 0
+  register: bridge_port_added
+  changed_when: bridge_port_added.rc == 0
+
+- name: Enable IP forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+    sysctl_set: yes
+    reload: yes
+  when: bridge_configuration.create
+
+- name: Activate bridge connection
+  ansible.builtin.command: "nmcli connection up {{ bridge_configuration.name }}"
+  register: bridge_activated
+  changed_when: bridge_activated.rc == 0
+  when: bridge_configuration.create
+
+- name: Check if bridge is up
+  ansible.builtin.command: "ip link show {{ bridge_configuration.name }}"
+  register: bridge_status
+  changed_when: false
+  failed_when: false
+  
+- name: Restart NetworkManager if bridge is not up
+  ansible.builtin.systemd:
+    name: NetworkManager
+    state: restarted
+  when: bridge_configuration.create and bridge_status.rc != 0

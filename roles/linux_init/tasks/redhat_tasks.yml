@@ -35,3 +35,9 @@
     group: root
     mode: 0755
   when: ansible_os_family == "RedHat"
+
+- name: Disable firewalld service
+  ansible.builtin.service:
+    name: firewalld
+    state: stopped
+    enabled: false
