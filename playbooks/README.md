@@ -71,7 +71,7 @@ Once the environment is set up, you can run playbooks from the playbooks directo
 
 ```bash
 cd /path/to/shoutsky-ansible/playbooks
-ansible-playbook okd_cluster/bastion.yml
+ansible-playbook base_setup/linux.yml
 ```
 
 The environment variables will be automatically loaded, making the roles available without specifying the full path.
