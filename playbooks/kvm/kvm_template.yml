@@ -1,6 +1,7 @@
 ---
 - name: Set up KVM Templates
-  hosts: virt_hosts
+  hosts: kvm_hosts
   become: true
   roles:
-  - ../../roles/kvm_setup_template
+  - name: ../../roles/kvm_setup_templates
+    tags: ["templates"]

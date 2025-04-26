@@ -4,4 +4,5 @@
   hosts: kvm_hosts
   become: true
   roles:
-  - role: ../../roles/kvm_setup_bridge
+  - name: ../../roles/kvm_setup_bridge
+    tags: ["bridge"]

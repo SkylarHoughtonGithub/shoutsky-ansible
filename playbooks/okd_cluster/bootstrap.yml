@@ -1,5 +1,0 @@
-- name: OKD Bastion server Setup
-  hosts: bastion
-  become: true
-  roles:
-    - ../../roles/bind
