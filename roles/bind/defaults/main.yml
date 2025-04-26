@@ -1,32 +1,4 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # defaults file for bind
-bind_configuration:
-  domain: okd.skylarhoughtongithub.com
-  subnet:
-  okd_subnet:
-  dns_forwarders:
-    - 8.8.8.8
-    - 8.8.4.4
-  dns_serial: "{{ '%Y%m%d00' | strftime }}"
-  nodes:
-    bootstrap:
-      name: bootstrap
-      ip:
-    control_plane:
-      - name: master-0
-        ip:
-      - name: master-1
-        ip:
-      - name: master-2
-        ip:
-    compute:
-      - name: worker-0
-        ip:
-      - name: worker-1
-        ip:
-    infra:
-      - name: infra-0
-        ip:
-      - name: infra-1
-        ip:
+dns_serial: "{{ '%Y%m%d00' | strftime }}"

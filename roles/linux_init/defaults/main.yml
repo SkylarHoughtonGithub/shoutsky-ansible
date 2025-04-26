@@ -29,6 +29,7 @@ common_packages:
   - vim
   - wget
   - zip
+  - nano
 
 deb_packages:
   - python3-apt
@@ -49,3 +50,5 @@ admin_users:
     groups: "wheel"
     ssh_public_key: "{{ default_ssh_public_key }}"
 
+disable_firewalld: true
+disable_selinux: true

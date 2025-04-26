@@ -1,5 +1,5 @@
-- name: Configure Bind DNS for OKD
-  hosts: dns_server
+- name: OKD Bastion server Setup
+  hosts: bastion
   become: true
   roles:
     - ../../roles/bind

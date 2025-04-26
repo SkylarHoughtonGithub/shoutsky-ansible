@@ -2,13 +2,17 @@
 ---
 # handlers file for linux_init
 - name: Restart sshd
-  systemd:
+  ansible.builtin.systemd:
     name: sshd
     state: restarted
 
 - name: Restart chronyd
-  systemd:
+  ansible.builtin.systemd:
     name: chronyd
     state: restarted
     enabled: yes
   when: "'chrony' in common_packages"
+
+- name: Reboot system
+  ansible.builtin.reboot:
+    msg: "Rebooting machine for linux init config"
