@@ -4,9 +4,9 @@
   remote_user: shoutsky
   become: true
   roles:
-  - name: ../../roles/init_linux
+  - name: init_linux
     tags: ["init"]
 
-  - name: ../../roles/docker_setup_host
+  - name: docker_setup_host
     tags: ["docker"]
 

@@ -3,8 +3,8 @@
   hosts: all
   become: true
   roles:
-  - name: ../../roles/init_linux
+  - name: init_linux
     tags: [init]
 
-  - name: ../../roles/tailscale
+  - name: tailscale
     tags: [tailscale]

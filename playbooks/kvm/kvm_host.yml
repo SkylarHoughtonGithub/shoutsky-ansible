@@ -3,7 +3,7 @@
   hosts: kvm_hosts
   become: true
   roles:
-  - name: ../../roles/kvm_setup_host
+  - name: kvm_setup_host
     tags: ["host"]
 
 - name: KVM Environment Init 

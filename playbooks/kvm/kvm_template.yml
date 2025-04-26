@@ -3,5 +3,5 @@
   hosts: kvm_hosts
   become: true
   roles:
-  - name: ../../roles/kvm_setup_templates
+  - name: kvm_setup_templates
     tags: ["templates"]
