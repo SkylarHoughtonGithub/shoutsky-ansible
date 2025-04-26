@@ -47,7 +47,7 @@
 - name: Configure forward zone file
   template:
     src: db.domain.j2
-    dest: "/var/named/zones/db.{{ bind_configuration.domain }}"
+    dest: "/var/named/zones/db.{{ okd_bastion_configuration.domain }}"
     owner: named
     group: named
     mode: '0640'
@@ -57,7 +57,7 @@
 - name: Configure reverse zone file
   template:
     src: db.reverse.j2
-    dest: "/var/named/zones/db.{{ bind_configuration.subnet }}"
+    dest: "/var/named/zones/db.{{ okd_bastion_configuration.subnet }}"
     owner: named
     group: named
     mode: '0640'

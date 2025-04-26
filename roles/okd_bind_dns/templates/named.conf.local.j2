@@ -4,13 +4,13 @@
 //
 
 // Forward zone
-zone "{{ bind_configuration.domain }}" {
+zone "{{ okd_bastion_configuration.domain }}" {
     type master;
-    file "/var/named/zones/db.{{ bind_configuration.domain }}";
+    file "/var/named/zones/db.{{ okd_bastion_configuration.domain }}";
 };
 
-// Reverse zone for {{ bind_configuration.subnet }}.0/24 subnet
-zone "{{ bind_configuration.subnet | reverse_subnet }}.in-addr.arpa" {
+// Reverse zone for {{ okd_bastion_configuration.subnet }}.0/24 subnet
+zone "{{ okd_bastion_configuration.subnet | reverse_subnet }}.in-addr.arpa" {
     type master;
-    file "/var/named/zones/db.{{ bind_configuration.subnet }}";
+    file "/var/named/zones/db.{{ okd_bastion_configuration.subnet }}";
 };
