@@ -1,0 +1,71 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for bind
+- name: Install Bind packages
+  package:
+    name:
+      - bind
+      - bind-utils
+    state: present
+
+- name: Configure named.conf
+  template:
+    src: named.conf.j2
+    dest: /etc/named.conf
+    owner: root
+    group: named
+    mode: '0640'
+    backup: yes
+  notify: Restart Bind
+
+- name: Create named directory
+  file:
+    path: /etc/named
+    state: directory
+    owner: root
+    group: named
+    mode: '0750'
+
+- name: Configure named.conf.local
+  template:
+    src: named.conf.local.j2
+    dest: /etc/named/named.conf.local
+    owner: root
+    group: named
+    mode: '0640'
+    backup: yes
+  notify: Restart Bind
+
+- name: Create zones directory
+  file:
+    path: /var/named/zones
+    state: directory
+    owner: named
+    group: named
+    mode: '0770'
+
+- name: Configure forward zone file
+  template:
+    src: db.domain.j2
+    dest: "/var/named/zones/db.{{ bind_configuration.domain }}"
+    owner: named
+    group: named
+    mode: '0640'
+    backup: yes
+  notify: Restart Bind
+
+- name: Configure reverse zone file
+  template:
+    src: db.reverse.j2
+    dest: "/var/named/zones/db.{{ bind_configuration.subnet }}"
+    owner: named
+    group: named
+    mode: '0640'
+    backup: yes
+  notify: Restart Bind
+
+- name: Start and enable Bind service
+  service:
+    name: named
+    state: started
+    enabled: yes

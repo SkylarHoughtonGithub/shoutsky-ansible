@@ -5,12 +5,12 @@ default_ssh_public_key: "{{ lookup('amazon.aws.aws_ssm', '/kvm/vm_root_pub_key',
 
 bridge_configuration:
   create: true
-  name: "br0"
-  interface: "eno2"
-  ip_method: "dhcp"
-  ip_address: "192.168.50.10/24"
-  gateway: "192.168.50.1"
-  dns: "8.8.8.8"
+  name: br0
+  interface: eno2
+  ip_method: dhcp
+  ip_address: 192.168.50.10/24
+  gateway: 192.168.50.1
+  dns: 8.8.8.8
 
 base_templates:
   - name: alma85_base

@@ -1,0 +1,11 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for bind
+- name: Restart Bind
+  service:
+    name: named
+    state: restarted
+
+- name: Reload Firewall
+  command: firewall-cmd --reload
+  ignore_errors: yes

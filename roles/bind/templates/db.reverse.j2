@@ -1,0 +1,42 @@
+;
+; BIND reverse data file for {{ bind_configuration.subnet }}.0/24
+;
+$TTL    604800
+@       IN      SOA     ns1.{{ bind_configuration.domain }}. admin.{{ bind_configuration.domain }}. (
+                            {{ bind_configuration.dns_serial }} ; Serial
+                       604800 ; Refresh
+                        86400 ; Retry
+                      2419200 ; Expire
+                       604800 ) ; Negative Cache TTL
+;
+; Name servers
+@       IN      NS      ns1.{{ bind_configuration.domain }}.
+
+; PTR Records
+{% set subnet_prefix = bridge_configuration.subnet.split('.')[:3] | join('.') %}
+{{ ansible_default_ipv4.address.split('.')[-1] }}  IN      PTR     ns1.{{ bind_configuration.domain }}.
+
+; Bootstrap
+{{ bridge_configuration.nodes.bootstrap.ip.split('.')[-1] }}  IN      PTR     {{ bridge_configuration.nodes.bootstrap.name }}.{{ bind_configuration.domain }}.
+{{ bridge_configuration.nodes.bootstrap.ip.split('.')[-1] }}  IN      PTR     api.{{ bind_configuration.domain }}.
+{{ bridge_configuration.nodes.bootstrap.ip.split('.')[-1] }}  IN      PTR     api-int.{{ bind_configuration.domain }}.
+
+; Control Plane Nodes
+{% for master in bridge_configuration.nodes.control_plane %}
+{{ master.ip.split('.')[-1] }}  IN      PTR     {{ master.name }}.{{ bind_configuration.domain }}.
+{% endfor %}
+
+; Compute Nodes
+{% for worker in bridge_configuration.nodes.compute %}
+{{ worker.ip.split('.')[-1] }}  IN      PTR     {{ worker.name }}.{{ bind_configuration.domain }}.
+{% endfor %}
+
+; Infrastructure Nodes
+{% for infra in bridge_configuration.nodes.infra %}
+{{ infra.ip.split('.')[-1] }}  IN      PTR     {{ infra.name }}.{{ bind_configuration.domain }}.
+{% endfor %}
+
+; ETCD Cluster
+{% for index in range(bridge_configuration.nodes.control_plane|length) %}
+{{ bridge_configuration.nodes.control_plane[index].ip.split('.')[-1] }}  IN      PTR     etcd-{{ index }}.{{ bind_configuration.domain }}.
+{% endfor %}

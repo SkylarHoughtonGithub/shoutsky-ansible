@@ -1,0 +1,48 @@
+;
+; BIND data file for {{ bind_configuration.domain }}
+;
+$TTL    604800
+@       IN      SOA     ns1.{{ bind_configuration.domain }}. admin.{{ bind_configuration.domain }}. (
+                            {{ bind_configuration.dns_serial }} ; Serial
+                       604800 ; Refresh
+                        86400 ; Retry
+                      2419200 ; Expire
+                       604800 ) ; Negative Cache TTL
+;
+; Name servers
+@       IN      NS      ns1.{{ bind_configuration.domain }}.
+ns1     IN      A       {{ ansible_default_ipv4.address }}
+
+; Load balancer entries
+api             IN      A       {{ bridge_configuration.nodes.bootstrap.ip }}
+api-int         IN      A       {{ bridge_configuration.nodes.bootstrap.ip }}
+*.apps          IN      A       {{ bridge_configuration.nodes.infra[0].ip }}
+*.apps          IN      A       {{ bridge_configuration.nodes.infra[1].ip }}
+
+; Bootstrap
+{{ bridge_configuration.nodes.bootstrap.name }}    IN      A       {{ bridge_configuration.nodes.bootstrap.ip }}
+
+; Control Plane Nodes
+{% for master in bridge_configuration.nodes.control_plane %}
+{{ master.name }}    IN      A       {{ master.ip }}
+{% endfor %}
+
+; Compute Nodes
+{% for worker in bridge_configuration.nodes.compute %}
+{{ worker.name }}    IN      A       {{ worker.ip }}
+{% endfor %}
+
+; Infrastructure Nodes
+{% for infra in bridge_configuration.nodes.infra %}
+{{ infra.name }}    IN      A       {{ infra.ip }}
+{% endfor %}
+
+; ETCD Cluster
+{% for index in range(bridge_configuration.nodes.control_plane|length) %}
+etcd-{{ index }}    IN      A       {{ bridge_configuration.nodes.control_plane[index].ip }}
+{% endfor %}
+
+; SRV records for ETCD
+{% for index in range(bridge_configuration.nodes.control_plane|length) %}
+_etcd-server-ssl._tcp  IN    SRV     0    10    2380    etcd-{{ index }}
+{% endfor %}

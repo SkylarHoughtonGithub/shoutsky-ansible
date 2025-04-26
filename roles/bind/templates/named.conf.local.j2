@@ -1,0 +1,16 @@
+// named.conf.local
+//
+// Define local zone configurations
+//
+
+// Forward zone
+zone "{{ bind_configuration.domain }}" {
+    type master;
+    file "/var/named/zones/db.{{ bind_configuration.domain }}";
+};
+
+// Reverse zone for {{ bind_configuration.subnet }}.0/24 subnet
+zone "{{ bind_configurationsubnet | reverse_subnet }}.in-addr.arpa" {
+    type master;
+    file "/var/named/zones/db.{{ bind_configuration.subnet }}";
+};
