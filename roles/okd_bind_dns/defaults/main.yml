@@ -1,4 +1,33 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # defaults file for bind
-dns_serial: "{{ '%Y%m%d00' | strftime }}"
+# dns_serial: "{{ '%Y%m%d00' | strftime }}"
+okd_bastion_defaults:
+  domain: example.com
+  subnet: 192.168.0
+  okd_subnet: 192.168.00.0/24
+  serial: "{{ '%Y%m%d00' | strftime }}"
+  dns_forwarders:
+    - 8.8.8.8
+    - 8.8.4.4
+  nodes:
+    bootstrap:
+      name: bootstrap
+      ip: 192.168.0.20
+    control_plane:
+      - name: master-0
+        ip: 192.168.0.100
+      - name: master-1
+        ip: 192.168.0.101
+      - name: master-2
+        ip: 192.168.0.102
+    compute:
+      - name: worker-0
+        ip: 192.168.0.110
+      - name: worker-1
+        ip: 192.168.0.111
+    infra:
+      - name: infra-0
+        ip: 192.168.0.120
+      - name: infra-1
+        ip: 192.168.0.121

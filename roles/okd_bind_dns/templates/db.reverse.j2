@@ -3,7 +3,7 @@
 ;
 $TTL    604800
 @       IN      SOA     ns1.{{ okd_bastion_configuration.domain }}. admin.{{ okd_bastion_configuration.domain }}. (
-                            {{ dns_serial }} ; Serial
+                            {{ okd_bastion_configuration.serial }} ; Serial
                        604800 ; Refresh
                         86400 ; Retry
                       2419200 ; Expire
