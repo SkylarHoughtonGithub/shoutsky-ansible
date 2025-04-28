@@ -1,0 +1,12 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for kvm_setup_bridge
+bridge_configuration:
+  create: true
+  autostart: true
+  name: "br0"
+  interface: "eth0"
+  ip_method: "dhcp"
+  ip_address: "192.168.50.10/24"
+  gateway: "192.168.50.1"
+  dns: "8.8.8.8"

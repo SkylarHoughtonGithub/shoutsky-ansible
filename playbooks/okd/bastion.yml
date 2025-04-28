@@ -1,0 +1,8 @@
+- name: OKD Bastion server Setup
+  hosts: bastion
+  become: true
+  roles:
+  - name: okd_bind
+    tags: [dns]
+  - name: okd_haproxy
+    tags: [lb]

@@ -1,11 +1,11 @@
 ---
 - name: Set up KVM infrastructure
-  hosts: virt_hosts
+  hosts: kvm_hosts
   become: true
-  vars:
-    create_nat_network: true
   roles:
-  - ../../roles/kvm_setup_host
+  - name: kvm_setup_host
+    tags: ["host"]
 
 - name: KVM Environment Init 
-  import_playbook: ../init_linux_instance/linux_init.yml
+  import_playbook: ../init/linux.yml
+  tags: ["init"]

@@ -1,0 +1,18 @@
+#SPDX-License-Identifier: MIT-0
+---
+galaxy_info:
+  author: Skylar Houghton
+  description: HAProxy role for OKD
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Fedora
+      versions:
+        - all
+  galaxy_tags:
+    - haproxy
+    - okd
+    - loadbalancer
+    - kubernetes
+    - openshift
+dependencies: []

@@ -18,15 +18,13 @@ kvm_packages:
 
 install_kvm: true
 
-# Control flag - set to true to enable bridge networking
-create_network_bridge: false
-
 # Bridge packages
 bridge_packages:
   - bridge-utils
   - NetworkManager-libnm
 
 # Bridge network settings
+create_nat_network: false
 nat_network_name: "openshift4"
 nat_network_address: "192.168.100.1"  # Change to your desired IP
 nat_network_cidr: "255.255.255.0"  # Change to your desired IP

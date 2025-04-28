@@ -1,0 +1,18 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for linux_init
+- name: Restart sshd
+  ansible.builtin.systemd:
+    name: sshd
+    state: restarted
+
+- name: Restart chronyd
+  ansible.builtin.systemd:
+    name: chronyd
+    state: restarted
+    enabled: yes
+  when: "'chrony' in common_packages"
+
+- name: Reboot system
+  ansible.builtin.reboot:
+    msg: "Rebooting machine for linux init config"

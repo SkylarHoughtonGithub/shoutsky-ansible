@@ -1,0 +1,54 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for okd_haproxy
+haproxy_defaults:
+  lb_global_maxconn: 20000
+  lb_global_log: "/dev/log local0 info"
+  lb_global_chroot: "/var/lib/haproxy"
+  lb_global_pidfile: "/var/run/haproxy.pid"
+  lb_global_user: "haproxy"
+  lb_global_group: "haproxy"
+  lb_stats_socket: "/var/lib/haproxy/stats"
+  lb_defaults_mode: "http"
+  lb_defaults_log: "global"
+  lb_defaults_option:
+  - "httplog"
+  - "dontlognull"
+  - "http-server-close"
+  - "forwardfor except 127.0.0.0/8"
+  - "redispatch"
+  lb_defaults_retries: 3
+  lb_defaults_timeout:
+  - "http-request 10s"
+  - "queue 1m"
+  - "connect 10s"
+  - "client 300s"
+  - "server 300s"
+  - "http-keep-alive 10s"
+  - "check 10s"
+  lb_defaults_maxconn: 20000
+  lb_stats_enable: true
+  lb_stats_bind_port: 9000
+  lb_stats_uri: "/"
+  ports:
+    api: 6443
+    machine_config: 22623
+    http: 80
+    https: 443
+  nodes:
+    bootstrap:
+      name: bootstrap
+      ip: OKD4_BOOTSTRAP_SERVER_IP
+    control_plane:
+      - name: master-0
+        ip: OKD4_CONTROL_PLANE_0_IP
+      - name: master-1
+        ip: OKD4_CONTROL_PLANE_1_IP
+      - name: master-2
+        ip: OKD4_CONTROL_PLANE_2_IP
+    compute: []
+    infra:
+      - name: infra-0
+        ip: OKD4_INFRA_NODE_0_IP
+      - name: infra-1
+        ip: OKD4_INFRA_NODE_1_IP

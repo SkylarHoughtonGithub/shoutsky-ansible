@@ -1,0 +1,61 @@
+#SPDX-License-Identifier: MIT-0
+---
+# All RedHat/CentOS specific tasks
+
+# Package management
+- name: Update all packages
+  yum:
+    name: "*"
+    state: latest
+
+- name: Install required packages
+  yum:
+    name: "{{ common_packages + rhel_packages }}"
+    state: present
+
+- name: Enable cockpit
+  service:
+    name: cockpit.socket
+    state: started
+    enabled: true
+
+# Configure dynamic MOTD
+- name: Create dynamic MOTD script directory (RHEL/CentOS)
+  file:
+    path: /etc/profile.d
+    state: directory
+    mode: 0755
+  when: ansible_os_family == "RedHat"
+
+- name: Install dynamic MOTD script (RHEL/CentOS)
+  template:
+    src: 10-system-status.j2
+    dest: /etc/profile.d/system-status.sh
+    owner: root
+    group: root
+    mode: 0755
+  when: ansible_os_family == "RedHat"
+
+- name: Check if firewalld is installed
+  command: rpm -q firewalld
+  register: firewalld_check
+  failed_when: false
+  changed_when: false
+
+- set_fact:
+    firewalld_installed: "{{ firewalld_check.rc == 0 }}"
+
+- name: Disable firewalld service
+  ansible.builtin.service:
+    name: firewalld
+    state: stopped
+    enabled: false
+  when: disable_firewalld and firewalld_installed
+
+- name: Disable SELinux permanently
+  ansible.builtin.lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: 'SELINUX=disabled'
+  notify: Reboot system
+  when: disable_selinux

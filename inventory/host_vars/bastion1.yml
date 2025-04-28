@@ -1,0 +1,29 @@
+---
+okd_bastion_configuration:
+  domain: okd.skylarhoughtongithub.com
+  subnet: 192.168.50
+  okd_subnet: 192.168.50.0/24
+  dns_forwarders:
+    - 8.8.8.8
+    - 8.8.4.4
+  nodes:
+    bootstrap:
+      name: bootstrap
+      ip: 192.168.50.20
+    control_plane:
+      - name: master-0
+        ip: 192.168.50.100
+      - name: master-1
+        ip: 192.168.50.101
+      - name: master-2
+        ip: 192.168.50.102
+    compute:
+      - name: worker-0
+        ip: 192.168.50.110
+      - name: worker-1
+        ip: 192.168.50.111
+    infra:
+      - name: infra-0
+        ip: 192.168.50.120
+      - name: infra-1
+        ip: 192.168.50.121

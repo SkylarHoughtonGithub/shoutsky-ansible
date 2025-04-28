@@ -3,4 +3,4 @@
   hosts: virt_hosts
   become: true
   roles:
-  - ../../roles/kvm_setup_vm
+  - kvm_setup_vm

@@ -1,0 +1,12 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for kvm_setup_bridge
+- name: restart networkmanager
+  ansible.builtin.systemd:
+    name: NetworkManager
+    state: restarted
+
+- name: restart libvirtd
+  ansible.builtin.systemd:
+    name: libvirtd
+    state: restarted

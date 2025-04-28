@@ -1,0 +1,55 @@
+### tasks/libvirt_setup.yml
+---
+- name: Install KVM/libvirt packages
+  ansible.builtin.package:
+    name: 
+      - qemu-kvm
+      - libvirt
+      - virt-install
+      - libvirt-daemon-kvm
+    state: present
+
+- name: Ensure libvirtd service is running and enabled
+  ansible.builtin.systemd:
+    name: libvirtd
+    state: started
+    enabled: true
+
+- name: Create temporary bridge network XML file
+  ansible.builtin.template:
+    src: bridge-network.xml.j2
+    dest: /tmp/{{ bridge_configuration.name }}-network.xml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Check if bridge network is already defined in libvirt
+  ansible.builtin.command: "virsh net-info {{ bridge_configuration.name }}"
+  register: net_exists
+  changed_when: false
+  failed_when: false
+
+- name: Define bridge network
+  ansible.builtin.command: "virsh net-define /tmp/{{ bridge_configuration.name }}-network.xml"
+  when: net_exists.rc != 0
+  register: net_defined
+  changed_when: net_defined.rc == 0
+
+- name: Start bridge network
+  ansible.builtin.command: "virsh net-start {{ bridge_configuration.name }}"
+  when: net_exists.rc != 0 or "inactive" in net_exists.stdout
+  register: net_started
+  changed_when: net_started.rc == 0
+  failed_when: net_started.rc != 0 and "already active" not in net_started.stderr
+
+- name: Set bridge network to autostart
+  ansible.builtin.command: "virsh net-autostart {{ bridge_configuration.name }}"
+  when: bridge_configuration.autostart
+  register: net_autostart
+  changed_when: net_autostart.rc == 0
+  failed_when: net_autostart.rc != 0 and "already marked" not in net_autostart.stderr
+
+- name: Remove temporary bridge network XML file
+  ansible.builtin.file:
+    path: /tmp/{{ bridge_configuration.name }}-network.xml
+    state: absent

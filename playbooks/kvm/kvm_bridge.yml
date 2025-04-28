@@ -1,0 +1,8 @@
+## Example Playbook
+---
+- name: Configure KVM Bridge on hosts
+  hosts: kvm_hosts
+  become: true
+  roles:
+  - name: kvm_setup_bridge
+    tags: ["bridge"]
