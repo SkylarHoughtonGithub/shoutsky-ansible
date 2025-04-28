@@ -1,0 +1,12 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for okd_haproxy
+- name: restart haproxy
+  service:
+    name: haproxy
+    state: restarted
+
+- name: reload haproxy
+  service:
+    name: haproxy
+    state: reloaded

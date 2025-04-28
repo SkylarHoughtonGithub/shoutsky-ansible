@@ -1,19 +1,9 @@
 #SPDX-License-Identifier: MIT-0
 ---
-# tasks file for bind
-# Use combine to merge the defaults with any overrides
-- name: Set final app configuration
+# tasks file for okd_bind
+- name: merge override and default parameters
   set_fact:
-    okd_bastion_configuration: "{{ okd_bastion_defaults | combine(okd_bastion_overrides | default({}), recursive=true) }}"
-
-- debug:
-    msg: "{{ okd_bastion_configuration }}"
-- name: Install Bind packages
-  package:
-    name:
-      - bind
-      - bind-utils
-    state: present
+    bind_configuration: "{{ bind_defaults | combine(okd_bastion_configuration | default({}), recursive=true) }}"
 
 - name: Configure named.conf
   template:

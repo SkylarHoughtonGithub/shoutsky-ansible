@@ -14,10 +14,10 @@ options {
         recursing-file  "/var/named/data/named.recursing";
         
         // Define allowed networks
-        allow-query     { localhost; {{ okd_bastion_configuration.okd_subnet }}; };
-        allow-query-cache { localhost; {{ okd_bastion_configuration.okd_subnet }}; };
-        allow-recursion { localhost; {{ okd_bastion_configuration.okd_subnet }}; };
-        allow-transfer  { localhost; {{ okd_bastion_configuration.okd_subnet }}; };
+        allow-query     { localhost; {{ bind_configuration.okd_subnet }}; };
+        allow-query-cache { localhost; {{ bind_configuration.okd_subnet }}; };
+        allow-recursion { localhost; {{ bind_configuration.okd_subnet }}; };
+        allow-transfer  { localhost; {{ bind_configuration.okd_subnet }}; };
 
         // If there is a firewall between you and nameservers you want
         // to talk to, you may need to fix the firewall to allow multiple
@@ -25,7 +25,7 @@ options {
 
         // Forward DNS queries to external DNS servers
         forwarders {
-{% for forwarder in okd_bastion_configuration.dns_forwarders %}
+{% for forwarder in bind_configuration.dns_forwarders %}
                 {{ forwarder }};
 {% endfor %}
         };

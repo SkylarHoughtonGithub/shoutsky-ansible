@@ -1,0 +1,39 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for okd_haproxy
+- name: merge override and default parameters
+  set_fact:
+    haproxy_configuration: "{{ haproxy_defaults | combine(okd_bastion_configuration | default({}), recursive=true) }}"
+
+- name: merge override and default parameters
+  set_fact:
+    control_plane_ips: "{{ haproxy_configuration.nodes.control_plane | map(attribute='ip') | list }}"
+    infra_node_ips: "{{ haproxy_configuration.nodes.infra | map(attribute='ip') | list }}"
+    compute_node_ips: "{{ haproxy_configuration.nodes.compute | map(attribute='ip') | list }}"
+
+- name: Install HAProxy
+  package:
+    name: haproxy
+    state: present
+
+- name: Create backup of original config
+  copy:
+    src: /etc/haproxy/haproxy.cfg
+    dest: /etc/haproxy/haproxy.cfg.orig
+    remote_src: yes
+    force: no
+
+- name: Generate HAProxy configuration
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart haproxy
+
+- name: Start and enable HAProxy service
+  systemd:
+    name: haproxy
+    state: started
+    enabled: yes

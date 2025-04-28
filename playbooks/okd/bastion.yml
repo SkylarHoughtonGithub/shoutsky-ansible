@@ -2,7 +2,7 @@
   hosts: bastion
   become: true
   roles:
-  - name: okd_bind_dns
+  - name: okd_bind
     tags: [dns]
-  - name: okd_haproxy_lb
+  - name: okd_haproxy
     tags: [lb]
