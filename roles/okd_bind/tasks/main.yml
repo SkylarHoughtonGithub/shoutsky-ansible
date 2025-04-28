@@ -2,11 +2,11 @@
 ---
 # tasks file for okd_bind
 - name: merge override and default parameters
-  set_fact:
+  ansible.builtin.set_fact:
     bind_configuration: "{{ bind_defaults | combine(okd_bastion_configuration | default({}), recursive=true) }}"
 
 - name: Configure named.conf
-  template:
+  ansible.builtin.template:
     src: named.conf.j2
     dest: /etc/named.conf
     owner: root
@@ -16,7 +16,7 @@
   notify: Restart Bind
 
 - name: Create named directory
-  file:
+  ansible.builtin.file:
     path: /etc/named
     state: directory
     owner: root
@@ -24,7 +24,7 @@
     mode: '0750'
 
 - name: Configure named.conf.local
-  template:
+  ansible.builtin.template:
     src: named.conf.local.j2
     dest: /etc/named/named.conf.local
     owner: root
@@ -34,7 +34,7 @@
   notify: Restart Bind
 
 - name: Create zones directory
-  file:
+  ansible.builtin.file:
     path: /var/named/zones
     state: directory
     owner: named
@@ -42,7 +42,7 @@
     mode: '0770'
 
 - name: Configure forward zone file
-  template:
+  ansible.builtin.template:
     src: db.domain.j2
     dest: "/var/named/zones/db.{{ okd_bastion_configuration.domain }}"
     owner: named
@@ -52,7 +52,7 @@
   notify: Restart Bind
 
 - name: Configure reverse zone file
-  template:
+  ansible.builtin.template:
     src: db.reverse.j2
     dest: "/var/named/zones/db.{{ okd_bastion_configuration.subnet }}"
     owner: named
@@ -62,7 +62,7 @@
   notify: Restart Bind
 
 - name: Start and enable Bind service
-  service:
+  ansible.builtin.service:
     name: named
     state: started
     enabled: yes
