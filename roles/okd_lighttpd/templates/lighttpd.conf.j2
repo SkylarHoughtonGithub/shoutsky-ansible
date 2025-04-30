@@ -1,0 +1,49 @@
+#======================= Managed by Ansible ========================
+# Lighttpd Configuration for OKD
+# Server configuration
+server.document-root = "{{ lighttpd_configuration.kernel_boot_document_root }}"
+server.port = {{ lighttpd_configuration.kernel_boot_server_name }}
+server.username = "lighttpd"
+server.groupname = "lighttpd"
+
+# Modules
+server.modules = (
+  "mod_access",
+  "mod_accesslog"
+{% if lighttpd_configuration.ssl.enabled %}
+  ,"mod_openssl"
+{% endif %}
+)
+
+# Logging
+server.errorlog = "/var/log/lighttpd/error.log"
+accesslog.filename = "/var/log/lighttpd/access.log"
+
+# MIME types
+include_shell "/usr/share/lighttpd/create-mime.conf.pl"
+
+# Directory listing
+{% if lighttpd_configuration.kernel_boot_dir_listing %}
+dir-listing.activate = "enable"
+dir-listing.encoding = "utf-8"
+{% endif %}
+
+# SSL Configuration
+{% if lighttpd_configuration.ssl.enabled %}
+$SERVER["socket"] == ":{{ lighttpd_configuration.kernel_boot_https_port }}" {
+  ssl.engine = "enable"
+  ssl.pemfile = "{{ lighttpd_configuration.ssl.certs_dir }}/{{ lighttpd_configuration.ssl.pem_name }}"
+  ssl.cipher-list = "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH"
+  
+  # Set HSTS (HTTP Strict Transport Security)
+  setenv.add-response-header = (
+    "Strict-Transport-Security" => "max-age=31536000; includeSubDomains"
+  )
+}
+{% endif %}
+
+# Set expiration for static files
+$HTTP["url"] =~ "\.(jpg|jpeg|gif|png|css|js|ico|zip|gz|svg|ttf|eot|woff|woff2|pdf|iso|ign)$" {
+  expire.url = ( "" => "access plus 1 days" )
+}
+#===================== End Managed by Ansible =====================

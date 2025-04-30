@@ -1,5 +1,5 @@
 ---
-okd_bastion_configuration:
+okd_bootstrap_configuration:
   domain: okd.skylarhoughtongithub.com
   subnet: 192.168.50
   okd_subnet: 192.168.50.0/24
@@ -27,3 +27,10 @@ okd_bastion_configuration:
         ip: 192.168.50.120
       - name: infra-1
         ip: 192.168.50.121
+    kernel_boot_ssl:
+      enabled: true
+      generate_self_signed_cert: true
+      cert_country: "US"
+      cert_state: "Kentucky"
+      cert_locality: "Greenville"
+      cert_organization: "skylab"

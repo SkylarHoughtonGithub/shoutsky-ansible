@@ -3,7 +3,7 @@
 # tasks file for okd_bind
 - name: merge override and default parameters
   ansible.builtin.set_fact:
-    bind_configuration: "{{ bind_defaults | combine(okd_bastion_configuration | default({}), recursive=true) }}"
+    bind_configuration: "{{ bind_defaults | combine(okd_bootstrap_configuration | default({}), recursive=true) }}"
 
 - name: Configure named.conf
   ansible.builtin.template:
@@ -44,7 +44,7 @@
 - name: Configure forward zone file
   ansible.builtin.template:
     src: db.domain.j2
-    dest: "/var/named/zones/db.{{ okd_bastion_configuration.domain }}"
+    dest: "/var/named/zones/db.{{ okd_bootstrap_configuration.domain }}"
     owner: named
     group: named
     mode: '0640'
@@ -54,7 +54,7 @@
 - name: Configure reverse zone file
   ansible.builtin.template:
     src: db.reverse.j2
-    dest: "/var/named/zones/db.{{ okd_bastion_configuration.subnet }}"
+    dest: "/var/named/zones/db.{{ okd_bootstrap_configuration.subnet }}"
     owner: named
     group: named
     mode: '0640'

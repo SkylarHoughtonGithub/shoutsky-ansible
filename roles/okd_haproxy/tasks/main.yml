@@ -3,7 +3,7 @@
 # tasks file for okd_haproxy
 - name: merge override and default parameters
   ansible.builtin.set_fact:
-    haproxy_configuration: "{{ haproxy_defaults | combine(okd_bastion_configuration | default({}), recursive=true) }}"
+    haproxy_configuration: "{{ haproxy_defaults | combine(okd_bootstrap_configuration | default({}), recursive=true) }}"
 
 - name: merge override and default parameters
   ansible.builtin.set_fact:
