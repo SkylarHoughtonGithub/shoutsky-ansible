@@ -1,0 +1,90 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for okd_nginx_kernel_boot
+- name: merge override and default parameters
+  ansible.builtin.set_fact:
+    nginx_configuration: "{{ nginx_defaults | combine(okd_bootstrap_configuration | default({}), recursive=true) }}"
+
+- name: Create directories for kernel boot files
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  with_items:
+    - "{{ nginx_configuration.kernel_boot_document_root }}/install"
+
+- name: Download Fedora CoreOS kernel
+  get_url:
+    url: "{{ nginx_configuration.fcos_kernel_url }}"
+    dest: "{{ nginx_configuration.kernel_boot_document_root }}/install/kernel"
+    mode: '0644'
+
+- name: Download Fedora CoreOS initramfs
+  get_url:
+    url: "{{ nginx_configuration.fcos_initramfs_url }}"
+    dest: "{{ nginx_configuration.kernel_boot_document_root }}/install/initramfs.img"
+    mode: '0644'
+
+- name: Download Fedora CoreOS rootfs
+  get_url:
+    url: "{{ nginx_configuration.fcos_rootfs_url }}"
+    dest: "{{ nginx_configuration.kernel_boot_document_root }}/install/rootfs.img"
+    mode: '0644'
+    
+- name: Install nginx and SSL dependencies
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - nginx
+    - openssl
+
+- name: Create directories for SSL certificates
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  with_items:
+    - "{{ nginx_configuration.kernel_boot_ssl.certs_dir }}"
+    - "{{ nginx_configuration.kernel_boot_document_root }}"
+
+- name: Generate self-signed SSL certificate
+  command: >
+    openssl req -new -x509 -nodes
+    -out {{ nginx_configuration.kernel_boot_ssl.certs_dir }}/{{ nginx_configuration.kernel_boot_ssl.cert_name }}
+    -keyout {{ nginx_configuration.kernel_boot_ssl.certs_dir }}/{{ nginx_configuration.kernel_boot_ssl.key_name }}
+    -days {{ nginx_configuration.kernel_boot_ssl.cert_expiration_days }}
+    -subj "/C={{ nginx_configuration.kernel_boot_ssl.cert_country }}/ST={{ nginx_configuration.kernel_boot_ssl.cert_state }}/L={{ nginx_configuration.kernel_boot_ssl.cert_locality }}/O={{ nginx_configuration.kernel_boot_ssl.cert_organization }}/CN={{ nginx_configuration.kernel_boot_server_name }}"
+  args:
+    creates: "{{ nginx_configuration.kernel_boot_ssl.certs_dir }}/{{ nginx_configuration.kernel_boot_ssl.cert_name }}"
+  when: nginx_configuration.kernel_boot_ssl.generate_self_signed_cert
+
+- name: Set permissions on SSL files
+  file:
+    path: "{{ nginx_configuration.kernel_boot_ssl.certs_dir }}/{{ item }}"
+    owner: root
+    group: root
+    mode: '0600'
+  with_items:
+    - "{{ nginx_configuration.kernel_boot_ssl.key_name }}"
+    - "{{ nginx_configuration.kernel_boot_ssl.cert_name }}"
+
+- name: Create nginx configuration
+  template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_configuration.kernel_boot_conf_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+  notify: restart nginx
+
+- name: Ensure nginx service is enabled and started
+  service:
+    name: nginx
+    state: started
+    enabled: yes

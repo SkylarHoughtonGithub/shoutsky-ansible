@@ -1,0 +1,25 @@
+# defaults file for okd_nginx_kernel_boot
+---
+nginx_defaults:
+  kernel_boot_document_root: "/var/www/html"
+  kernel_boot_server_name: "localhost"
+  kernel_boot_server_http_port: 8080
+  kernel_boot_server_https_port: 8443
+  kernel_boot_conf_path: "/etc/nginx/conf.d/kernel_boot.conf"
+  expires_enabled: true
+  expires_time: "30d"
+  kernel_boot_ssl:
+    certs_dir: "/etc/nginx/ssl"
+    cert_name: "server.crt"
+    key_name: "server.key"
+    generate_self_signed_cert: true
+    cert_expiration_days: 365
+    cert_country: "US"
+    cert_state: "State"
+    cert_locality: "City"
+    cert_organization: "Organization"
+    cipher_list: "HIGH:!aNULL:!MD5"
+  fcos_kernel_url: "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/37.20230401.3.0/x86_64/fedora-coreos-37.20230401.3.0-live-kernel-x86_64"
+  fcos_initramfs_url: "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/37.20230401.3.0/x86_64/fedora-coreos-37.20230401.3.0-live-initramfs.x86_64.img"
+  fcos_rootfs_url: "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/37.20230401.3.0/x86_64/fedora-coreos-37.20230401.3.0-live-rootfs.x86_64.img"
+  

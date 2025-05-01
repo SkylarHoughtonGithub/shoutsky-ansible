@@ -1,0 +1,45 @@
+server {
+    listen {{ nginx_configuration.kernel_boot_server_http_port }};
+    server_name {{ nginx_configuration.kernel_boot_server_name }};
+
+    # Redirect HTTP to HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen {{ nginx_configuration.kernel_boot_server_https_port }} ssl;
+    server_name {{ nginx_configuration.kernel_boot_server_name }};
+
+    root {{ nginx_configuration.kernel_boot_document_root }};
+    index index.html;
+
+    # SSL Configuration
+    ssl_certificate {{ nginx_configuration.kernel_boot_ssl.certs_dir }}/{{ nginx_configuration.kernel_boot_ssl.cert_name }};
+    ssl_certificate_key {{ nginx_configuration.kernel_boot_ssl.certs_dir }}/{{ nginx_configuration.kernel_boot_ssl.key_name }};
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers {{ nginx_configuration.kernel_boot_ssl.cipher_list | default('HIGH:!aNULL:!MD5') }};
+    ssl_prefer_server_ciphers on;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # Enable caching for static files
+    {% if nginx_configuration.expires_enabled | default(true) %}
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|pdf)$ {
+        expires {{ nginx_configuration.expires_time | default('30d') }};
+        add_header Cache-Control "public, no-transform";
+    }
+    {% endif %}
+
+    # Main location block
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    # Custom error pages
+    error_page 404 /404.html;
+    error_page 500 502 503 504 /50x.html;
+}

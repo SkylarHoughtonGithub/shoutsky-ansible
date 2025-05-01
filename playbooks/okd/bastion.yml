@@ -6,5 +6,5 @@
     tags: [dns]
   - name: okd_haproxy
     tags: [lb]
-  - name: okd_lighttpd
+  - name: okd_nginx
     tags: [kernel_boot]
