@@ -36,13 +36,15 @@ vm_instances:
     ssh_authorized_key: "{{ default_ssh_public_key }}"
     enable_autostart: true
 
-  # - name: "master1.{{ domain }}"
-  #   base_path: "{{ template_images_dir }}/alma9_base.qcow2"
-  #   disk_path: "{{ vm_images_dir }}/master1.qcow2"
-  #   memory_mb: 8196
-  #   vcpus: 4
-  #   root_password: "{{ default_password }}"
-  #   ssh_authorized_key: "{{ default_ssh_public_key }}"
+  - name: "master1.{{ domain }}"
+    base_path: "{{ template_images_dir }}/alma9_base.qcow2"
+    disk_path: "{{ vm_images_dir }}/master1.qcow2"
+    disk_size: 100G
+    network: br0
+    memory_mb: 8196
+    vcpus: 4
+    root_password: "{{ default_password }}"
+    ssh_authorized_key: "{{ default_ssh_public_key }}"
 
   # - name: "master2.{{ domain }}"
   #   base_path: "{{ template_images_dir }}/alma9_base.qcow2"

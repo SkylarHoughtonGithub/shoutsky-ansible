@@ -25,7 +25,23 @@
     label: "{{ item.name }}"
     index_var: disk_index
 
-- name: Create VM disks from templates
+# For new disks with specified size, create them with the specified size
+- name: Create VM disks from templates with specified size
+  shell: >
+    qemu-img convert -f qcow2 -O qcow2 {{ item.base_path }} {{ item.disk_path }}
+    {% if item.disk_size is defined %} &&
+    qemu-img resize {{ item.disk_path }} {{ item.disk_size }}{% endif %}
+  loop: "{{ vm_instances }}"
+  loop_control:
+    label: "{{ item.name }}"
+    index_var: disk_index
+  when: 
+    - not disk_exists.results[disk_index].stat.exists
+    - item.disk_size is defined
+  register: disk_created_with_size
+
+# For new disks without specified size, just copy
+- name: Create VM disks from templates without size customization
   copy:
     src: "{{ item.base_path }}"
     dest: "{{ item.disk_path }}"
@@ -34,76 +50,107 @@
   loop_control:
     label: "{{ item.name }}"
     index_var: disk_index
-  when: not disk_exists.results[disk_index].stat.exists
+  when: 
+    - not disk_exists.results[disk_index].stat.exists
+    - item.disk_size is not defined
   register: disk_created
 
-- name: VM creation and management
-  block:
-    - name: Generate VM libvirt XML
-      command: >
-        virt-install
-        --name {{ item.name }}
-        --memory {{ item.memory_mb | default(vm_memory_mb) }}
-        --vcpus {{ item.vcpus | default(vm_vcpus) }}
-        --disk {{ item.disk_path }},format=qcow2
-        --network network={{ item.network }}
-        --import
-        --os-variant detect=on,require=off
-        --noautoconsole
-        --print-xml
-      register: vm_xml
-      changed_when: false
-      failed_when: false
-      loop: "{{ vm_instances }}"
-      loop_control:
-        label: "{{ item.name }}"
+# Set a combined fact to track which disks were created in this run
+- name: Set fact for created disks
+  set_fact:
+    disks_created: "{{ (disk_created_with_size.results if disk_created_with_size.results is defined else []) + 
+                       (disk_created.results if disk_created.results is defined else []) }}"
 
-    - name: Define VM using XML
-      community.libvirt.virt:
-        # name: "{{ item.name }}"
-        command: define
-        xml: "{{ item_xml.results[index].stdout }}"
-      loop: "{{ vm_instances }}"
-      loop_control:
-        index_var: index
-        label: "{{ item.name }}"
-      vars:
-        item_xml: "{{ vm_xml }}"
-      when: item_xml.results[index].rc == 0
+# Basic VM customization for all newly created disks
+- name: Basic VM customization
+  command: >
+    virt-customize -a {{ item.item.disk_path }}
+    --hostname {{ item.item.name }}
+    {% if item.item.root_password is defined %}
+    --root-password password:{{ item.item.root_password }}
+    {% endif %}
+    {% if item.item.ssh_authorized_key is defined %}
+    --ssh-inject root:string:"{{ item.item.ssh_authorized_key }}"
+    {% endif %}
+    {% if item.item.firstboot_commands is defined %}
+    --firstboot-command "{{ item.item.firstboot_commands | join(' && ') }}"
+    {% endif %}
+  loop: "{{ disks_created }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: 
+    - item.changed | default(false)
+    - item.item.customize | default(true)
+  register: customize_result
 
-    - name: Basic VM customization
-      command: >
-        virt-customize -a {{ item.disk_path }}
-        --hostname {{ item.name }}
-        {% if item.root_password is defined %}
-        --root-password password:{{ item.root_password }}
-        {% endif %}
-        {% if item.ssh_authorized_key is defined %}
-        --ssh-inject root:string:"{{ item.ssh_authorized_key }}"
-        {% endif %}
-        {% if item.firstboot_commands is defined %}
-        --firstboot-command "{{ item.firstboot_commands | join(' && ') }}"
-        {% endif %}
-      loop: "{{ vm_instances }}"
-      loop_control:
-        label: "{{ item.name }}"
-      when: 
-        - item.customize | default(true)
-        - disk_created.changed | default(false) or force_customize | default(false)
-      register: customize_result
+# Check if VMs exist
+- name: Check if VMs exist
+  community.libvirt.virt:
+    name: "{{ item.name }}"
+    command: status
+  register: vm_status
+  failed_when: false
+  loop: "{{ vm_instances }}"
+  loop_control:
+    label: "{{ item.name }}"
 
-    - name: Start VMs
-      community.libvirt.virt:
-        name: "{{ item.name }}"
-        state: running
-      loop: "{{ vm_instances }}"
-      loop_control:
-        label: "{{ item.name }}"
+# Determine which VMs need to be created
+- name: Extract VMs that need to be created
+  set_fact:
+    vms_to_create: "{{ vm_instances | selectattr('name', 'in', 
+                     vm_status.results | selectattr('msg', 'defined') | 
+                     selectattr('msg', 'search', 'not found') | 
+                     map(attribute='item.name') | list) | list }}"
 
-    - name: Enable autostart for VMs
-      command: "virsh autostart {{ item.name }}"
-      loop: "{{ vm_instances }}"
-      loop_control:
-        label: "{{ item.name }}"
-      when: 
-        - item.enable_autostart | default(true)
+# Generate and define VMs
+- name: Generate VM libvirt XML for absent VMs
+  command: >
+    virt-install
+    --name {{ item.name }}
+    --memory {{ item.memory_mb | default(vm_memory_mb) }}
+    --vcpus {{ item.vcpus | default(vm_vcpus) }}
+    --disk {{ item.disk_path }},format=qcow2
+    --network network={{ item.network }}
+    --import
+    --os-variant detect=on,require=off
+    --noautoconsole
+    --print-xml
+  register: vm_xml
+  changed_when: false
+  failed_when: false
+  loop: "{{ vms_to_create }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Define new VMs using XML
+  community.libvirt.virt:
+    command: define
+    xml: "{{ item.stdout }}"
+  register: vm_defined
+  loop: "{{ vm_xml.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: item.rc == 0
+
+# Start VMs
+- name: Start newly defined VMs
+  community.libvirt.virt:
+    name: "{{ item.item.item.name }}"
+    state: running
+  loop: "{{ vm_defined.results }}"
+  loop_control:
+    label: "{{ item.item.item.name }}"
+  when: 
+    - item.changed | default(false)
+    - item.item.rc == 0
+
+# Enable autostart
+- name: Enable autostart for newly defined VMs
+  command: "virsh autostart {{ item.item.item.name }}"
+  loop: "{{ vm_defined.results }}"
+  loop_control:
+    label: "{{ item.item.item.name }}"
+  when: 
+    - item.changed | default(false)
+    - item.item.rc == 0
+    - item.item.item.enable_autostart | default(true)
