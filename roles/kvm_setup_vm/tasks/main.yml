@@ -80,7 +80,6 @@
     label: "{{ item.item.name }}"
   when: 
     - item.changed | default(false)
-    - item.item.customize | default(true)
   register: customize_result
 
 # Check if VMs exist
