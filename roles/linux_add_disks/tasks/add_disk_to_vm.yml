@@ -1,0 +1,122 @@
+- name: Create additional disk images for {{ vm_name }}
+  command: >
+    qemu-img create -f qcow2 
+    "{{ disk_path }}" 
+    "{{ disk_info.size }}"
+  vars:
+    disk_path: "{{ item.key }}"
+    disk_info: "{{ item.value }}"
+  loop: "{{ vm_additional_disks | dict2items }}"
+  register: disk_creation
+  failed_when: 
+    - disk_creation.rc != 0
+    - "'File exists' not in disk_creation.stderr"
+  changed_when: "'File exists' not in disk_creation.stderr"
+
+- name: Check if VM is running
+  command: virsh list --name --state-running
+  register: running_vms
+  changed_when: false
+
+- name: Get current VM disk configuration
+  command: virsh domblklist {{ vm_name }} --details
+  register: current_disks
+  changed_when: false
+  failed_when: false
+
+- name: Generate device names for additional disks
+  set_fact:
+    disk_device_map: >-
+      {{
+        disk_device_map | default({}) | combine({
+          item.key: 'vd' + (alphabet[loop.index0 + existing_disk_count])
+        })
+      }}
+  vars:
+    alphabet: "{{ 'abcdefghijklmnopqrstuvwxyz' | list }}"
+    existing_disk_count: "{{ current_disks.stdout_lines | select('match', '^disk\\s+') | list | length }}"
+  loop: "{{ vm_additional_disks | dict2items }}"
+  when: vm_additional_disks | length > 0
+
+- name: Attach additional disks to running VM
+  command: >
+    virsh attach-disk {{ vm_name }} 
+    "{{ item.key }}" 
+    "{{ disk_device_map[item.key] }}" 
+    --persistent 
+    --cache writeback 
+    --driver qemu 
+    --subdriver qcow2
+  vars:
+    disk_path: "{{ item.key }}"
+    disk_info: "{{ item.value }}"
+  loop: "{{ vm_additional_disks | dict2items }}"
+  register: disk_attachment
+  changed_when: disk_attachment.rc == 0
+  failed_when: 
+    - disk_attachment.rc != 0
+    - "'already exists' not in disk_attachment.stderr"
+    - "'target .* already exists' not in disk_attachment.stderr"
+  when: 
+    - vm_name in running_vms.stdout_lines
+    - item.key not in current_disks.stdout
+
+- name: Attach additional disks to shutdown VM (via XML edit)
+  block:
+    - name: Get VM XML configuration
+      command: virsh dumpxml {{ vm_name }}
+      register: vm_xml
+
+    - name: Create temporary XML file
+      tempfile:
+        suffix: .xml
+      register: temp_xml
+
+    - name: Write current XML to temp file
+      copy:
+        content: "{{ vm_xml.stdout }}"
+        dest: "{{ temp_xml.path }}"
+
+    - name: Add disk XML entries
+      xml:
+        path: "{{ temp_xml.path }}"
+        xpath: /domain/devices
+        add_children:
+          - disk:
+              type: file
+              device: disk
+              _:
+                - driver:
+                    name: qemu
+                    type: qcow2
+                    cache: writeback
+                - source:
+                    file: "{{ item.key }}"
+                - target:
+                    dev: "{{ disk_device_map[item.key] }}"
+                    bus: virtio
+      loop: "{{ vm_additional_disks | dict2items }}"
+      when: item.key not in current_disks.stdout
+
+    - name: Apply updated XML configuration
+      command: virsh define "{{ temp_xml.path }}"
+      register: xml_update
+      changed_when: xml_update.rc == 0
+
+    - name: Clean up temporary XML file
+      file:
+        path: "{{ temp_xml.path }}"
+        state: absent
+
+  when: 
+    - vm_name not in running_vms.stdout_lines
+    - vm_additional_disks | dict2items | selectattr('key', 'not in', current_disks.stdout) | list | length > 0
+
+- name: Display disk attachment results
+  debug:
+    msg: |
+      Additional disks processed for VM: {{ vm_name }}
+      {% for disk_path, disk_info in vm_additional_disks.items() %}
+      - {{ disk_path }} ({{ disk_info.size }}) -> {{ disk_device_map[disk_path] }}
+      {% endfor %}
+  when: vm_additional_disks | length > 0

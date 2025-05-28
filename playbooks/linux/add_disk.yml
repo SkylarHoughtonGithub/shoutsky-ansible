@@ -1,0 +1,6 @@
+- name: Add disk
+  hosts: all
+  become: yes
+
+  roles:
+  - linux_add_disks

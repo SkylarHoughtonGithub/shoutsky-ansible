@@ -1,0 +1,12 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for linux_add_disk
+- name: Process additional disks for VM instances
+  include_tasks: add_disk_to_vm.yml
+  vars:
+    vm_name: "{{ vm_instance.name }}"
+    vm_additional_disks: "{{ vm_instance.additional_disks | default({}) }}"
+  loop: "{{ vm_instances }}"
+  loop_control:
+    loop_var: vm_instance
+  when: vm_instance.additional_disks is defined and vm_instance.additional_disks|length > 0
