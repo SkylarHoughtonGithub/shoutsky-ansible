@@ -1,0 +1,33 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for okd_haproxy
+- name: merge override and default parameters
+  ansible.builtin.set_fact:
+    haproxy_configuration: "{{ haproxy_defaults | combine(okd_bootstrap_configuration | default({}), recursive=true) }}"
+
+- name: merge override and default parameters
+  ansible.builtin.set_fact:
+    control_plane_ips: "{{ haproxy_configuration.nodes.control_plane | map(attribute='ip') | list }}"
+    infra_node_ips: "{{ haproxy_configuration.nodes.infra | map(attribute='ip') | list }}"
+    compute_node_ips: "{{ haproxy_configuration.nodes.compute | map(attribute='ip') | list }}"
+
+- name: Install HAProxy
+  ansible.builtin.package:
+    name: haproxy
+    state: present
+
+- name: Generate HAProxy configuration
+  ansible.builtin.template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  notify: restart haproxy
+
+- name: Start and enable HAProxy service
+  ansible.builtin.systemd:
+    name: haproxy
+    state: started
+    enabled: yes
