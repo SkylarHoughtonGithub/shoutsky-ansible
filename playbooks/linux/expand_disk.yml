@@ -1,0 +1,8 @@
+- name: Expand XFS partitions
+  hosts: all
+  become: yes
+  vars:
+    partition_device: /dev/sda4 #/
+
+  roles:
+  - linux_expand_xfs_disks

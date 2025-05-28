@@ -1,0 +1,17 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for linux_expand_disks
+# Safety checks
+allow_root_partition: true
+
+# Required variable - must be set when calling the role
+# partition_device: /dev/sda1
+
+# Optional variables
+backup_path: /tmp
+create_backup: true
+
+required_packages:
+  - xfsprogs
+  - parted
+  - gdisk

@@ -1,0 +1,101 @@
+- name: Gather partition information
+  setup:
+    gather_subset:
+      - hardware
+  tags: always
+
+- name: Fail if partition is not specified
+  fail:
+    msg: "partition_device variable must be defined (e.g., /dev/sda1)"
+  when: partition_device is not defined
+
+- name: Check if partition exists
+  stat:
+    path: "{{ partition_device }}"
+  register: partition_stat
+  failed_when: not partition_stat.stat.exists
+
+- name: Get current partition information
+  parted:
+    device: "{{ partition_device | regex_replace('[0-9]+$', '') }}"
+    unit: s
+  register: partition_info
+
+- name: Extract partition number from device path
+  set_fact:
+    partition_number: "{{ partition_device | regex_search('[0-9]+$') }}"
+    disk_device: "{{ partition_device | regex_replace('[0-9]+$', '') }}"
+
+- name: Get current filesystem information
+  command: xfs_info {{ partition_device }}
+  register: xfs_info_before
+  changed_when: false
+  failed_when: false
+
+- name: Check if partition is XFS
+  fail:
+    msg: "Partition {{ partition_device }} is not an XFS filesystem"
+  when: 
+    - xfs_info_before.rc != 0
+    - "'not a valid XFS filesystem' in xfs_info_before.stderr"
+
+- name: Get current partition end sector
+  set_fact:
+    current_end: "{{ item.end }}"
+  loop: "{{ partition_info.partitions }}"
+  when: item.num == (partition_number | int)
+
+- name: Get disk size
+  command: blockdev --getsz {{ disk_device }}
+  register: disk_sectors
+  changed_when: false
+
+- name: Calculate available space
+  set_fact:
+    available_sectors: "{{ (disk_sectors.stdout | int) - (current_end | int) - 34 }}"  # 34 sectors for GPT backup
+
+- name: Skip expansion if no space available
+  debug:
+    msg: "No additional space available for expansion"
+  when: (available_sectors | int) <= 0
+
+- name: Expand partition when space is available
+  block:
+    - name: Backup partition table
+      command: sgdisk --backup={{ backup_path | default('/tmp') }}/partition_backup_{{ ansible_date_time.epoch }}.sgdisk {{ disk_device }}
+      when: create_backup | default(true) | bool
+    
+    - name: Expand xfs partition
+      shell: |
+        growpart {{ disk_device }} {{ partition_number }}
+      register: partition_resize
+
+    - name: Inform kernel of partition changes
+      command: partprobe {{ disk_device }}
+      when: partition_resize.changed
+
+    - name: Wait for kernel to recognize changes
+      wait_for:
+        timeout: 5
+      when: partition_resize.changed
+
+    - name: Expand XFS filesystem
+      command: xfs_growfs -d {{ partition_device }}
+      register: xfs_grow
+      when: partition_resize.changed
+
+    - name: Get filesystem information after expansion
+      command: xfs_info {{ partition_device }}
+      register: xfs_info_after
+      changed_when: false
+      when: partition_resize.changed
+
+    - name: Display expansion results
+      debug:
+        msg: |
+          Partition expansion completed successfully!
+          Before: {{ xfs_info_before.stdout_lines | select('match', '.*data.*') | first }}
+          After: {{ xfs_info_after.stdout_lines | select('match', '.*data.*') | first }}
+      when: partition_resize.changed and xfs_grow.changed
+
+  when: (available_sectors | int) > 0
