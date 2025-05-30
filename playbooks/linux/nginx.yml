@@ -1,0 +1,7 @@
+---
+- name: Base Linux Setup
+  hosts: all
+  become: true
+  roles:
+  - name: linux_nginx
+    tags: [install]
