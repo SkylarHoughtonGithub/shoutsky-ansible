@@ -2,7 +2,7 @@
 all:
   children:
     kvm_hosts:
-      hosts:
+      hosts:https://github.com/k3s-io/k3s-ansible.git
         host2:
           ansible_host: 192.168.80.242
 
