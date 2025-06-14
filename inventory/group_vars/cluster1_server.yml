@@ -1,0 +1,46 @@
+# group_vars/cluster1_server.yml or group_vars/all.yml for cluster1
+---
+api_endpoint: "{{ hostvars[groups['cluster1_server'][0]]['ansible_host'] | default(groups['cluster1_server'][0]) }}"
+cluster_context: skylab-cluster1
+
+# Cluster 1 specific networking
+extra_server_args: >-
+  --cluster-domain cluster1.skylarhoughtongithub.local
+
+extra_agent_args: >-
+  --node-label cluster=skylab-cluster1
+  --node-label environment=lab
+  --kubelet-arg max-pods=250
+  --kubelet-arg cluster-domain=cluster1.skylarhoughtongithub.local
+
+server_config_yaml: |
+  cluster-cidr: "10.100.0.0/16"
+  service-cidr: "10.110.0.0/16"
+  cluster-dns: "10.110.0.10"
+  cluster-domain: "cluster1.skylarhoughtongithub.local"
+  
+  # Security
+  secrets-encryption: true
+  
+  # Node labels for masters
+  node-label:
+    - "cluster=skylab-cluster1"
+    - "node-type=master"
+    - "workload-type=control-plane"
+    - "environment=lab"
+
+agent_config_yaml: |
+  node-label:
+    - "cluster=skylab-cluster1"
+    - "node-type=worker"
+    - "workload-type=general"
+    - "environment=lab"
+  
+  # Kubelet configuration
+  kubelet-arg:
+    - "max-pods=250"
+    - "cluster-dns=10.110.0.10"
+    - "cluster-domain=cluster1.skylarhoughtongithub.local"
+
+# External etcd configuration
+etcd_cluster1_endpoint: "https://etcd1.cluster1.local:2379,https://etcd2.cluster1.local:2379,https://etcd3.cluster1.local:2379"

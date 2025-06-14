@@ -1,17 +1,7 @@
 ---
 all:
   children:
-    kvm_hosts:
-      hosts:https://github.com/k3s-io/k3s-ansible.git
-        host2:
-          ansible_host: 192.168.80.242
-
-    bastion:
-      hosts:
-        bastion2:
-          ansible_host: 192.168.80.215
-
-    server:
+    cluster2_server:
       hosts:
         master2-1:
           ansible_host: 192.168.80.228
@@ -20,7 +10,7 @@ all:
         master2-3:
           ansible_host: 192.168.80.226
 
-    agent:
+    cluster2_agent:
       hosts:
         worker2-1:
           ansible_host: 192.168.80.219
@@ -28,3 +18,16 @@ all:
           ansible_host: 192.168.80.218
         worker2-3:
           ansible_host: 192.168.80.217
+    
+    server:
+      children:
+        cluster2_server:
+    
+    agent:
+      children:
+        cluster2_agent:
+    
+    k3s_cluster:
+      children:
+        server:
+        agent:

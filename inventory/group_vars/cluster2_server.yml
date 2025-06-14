@@ -1,0 +1,47 @@
+# group_vars/cluster2_server.yml or separate inventory for cluster2
+---
+api_endpoint: "{{ hostvars[groups['cluster2_server'][0]]['ansible_host'] | default(groups['cluster2_server'][0]) }}"
+cluster_context: skylab-cluster2
+
+# Cluster 2 specific networking
+extra_server_args: >-
+  --cluster-domain cluster2.skylarhoughtongithub.local
+
+extra_agent_args: >-
+  --node-label cluster=skylab-cluster2
+  --node-label environment=lab
+  --kubelet-arg max-pods=250
+  --kubelet-arg cluster-domain=cluster2.skylarhoughtongithub..local
+
+server_config_yaml: |
+  # Cluster 2 networking - different CIDRs to avoid conflicts
+  cluster-cidr: "10.200.0.0/16"
+  service-cidr: "10.210.0.0/16"
+  cluster-dns: "10.210.0.10"
+  cluster-domain: "cluster2.skylarhoughtongithub.local"
+  
+  # Security
+  secrets-encryption: true
+  
+  # Node labels for masters
+  node-label:
+    - "cluster=skylab-cluster2"
+    - "node-type=master"
+    - "node-role=control-plane"
+    - "environment=lab"
+
+agent_config_yaml: |
+  node-label:
+    - "cluster=skylab-cluster2"
+    - "node-type=worker"
+    - "workload-type=general"
+    - "environment=lab"
+  
+  # Kubelet configuration
+  kubelet-arg:
+    - "max-pods=250"
+    - "cluster-dns=10.210.0.10"
+    - "cluster-domain=cluster2.skylarhoughtongithub.local"
+
+# External etcd configuration
+etcd_cluster2_endpoint: "https://etcd4.cluster2.local:2379,https://etcd5.cluster2.local:2379,https://etcd6.cluster2.local:2379"
