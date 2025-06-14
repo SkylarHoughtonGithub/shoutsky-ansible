@@ -3,26 +3,16 @@ all:
   children:
     kvm_hosts:
       hosts:
-        host1:
-          ansible_host: 192.168.80.241
         host2:
           ansible_host: 192.168.80.242
 
     bastion:
       hosts:
-        bastion1:
-          ansible_host: 192.168.80.214
         bastion2:
           ansible_host: 192.168.80.215
 
     server:
       hosts:
-        master1-1:
-          ansible_host: 192.168.80.238
-        master1-2:
-          ansible_host: 192.168.80.233
-        master1-3:
-          ansible_host: 192.168.80.232
         master2-1:
           ansible_host: 192.168.80.228
         master2-2:
@@ -32,12 +22,6 @@ all:
 
     agent:
       hosts:
-        worker1-1:
-          ansible_host: 192.168.80.213
-        worker1-2:
-          ansible_host: 192.168.80.221
-        worker1-3:
-          ansible_host: 192.168.80.209
         worker2-1:
           ansible_host: 192.168.80.219
         worker2-2:
