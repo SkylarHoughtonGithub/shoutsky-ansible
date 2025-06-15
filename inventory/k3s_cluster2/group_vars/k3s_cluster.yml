@@ -13,6 +13,7 @@ cluster_context: skylab-cluster2
 # Cluster 2 specific networking
 extra_server_args: >-
   --cluster-domain cluster2.skylarhoughtongithub.local
+  --node-taint=node-role.kubernetes.io/control-plane:PreferNoSchedule
 
 extra_agent_args: >-
   --node-label cluster=skylab-cluster2
