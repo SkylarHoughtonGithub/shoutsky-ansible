@@ -43,4 +43,4 @@ agent_config_yaml: |
     - "cluster-domain=cluster1.skylarhoughtongithub.local"
 
 # External etcd configuration
-etcd_cluster1_endpoint: "https://etcd1.cluster1.local:2379,https://etcd2.cluster1.local:2379,https://etcd3.cluster1.local:2379"
+etcd_cluster1_endpoint: "postgres://{{ k3s_etcd_db_username }}:{{ k3s_etcd_db_password }}@{{ k3s_etcd_db_endpoint }}:5432/k3s_cluster1?sslmode=require"

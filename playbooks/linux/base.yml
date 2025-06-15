@@ -6,5 +6,5 @@
   - name: linux_init
     tags: [init]
 
-  - name: tailscale_install
+  - name: linux_tailscale
     tags: [tailscale]

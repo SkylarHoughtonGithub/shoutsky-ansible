@@ -1,4 +1,7 @@
 ---
 k3s_version: v1.30.2+k3s1
-token: "{{ lookup('amazon.aws.aws_ssm', '/k3s/cluster1/token', region='us-east-2' ) }}"
+token: "{{ lookup('amazon.aws.aws_ssm', '/k3s/token', region='us-east-2' ) }}"
 api_port: 6443
+k3s_etcd_db_username: "{{ lookup('amazon.aws.aws_ssm', '/k3s/db_username', region='us-east-2' }}"
+k3s_etcd_db_password: "{{ lookup('amazon.aws.aws_ssm', '/k3s/db_password', region='us-east-2' }}"
+k3s_etcd_db_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/k3s/db_endpoint', region='us-east-2' }}"

@@ -31,3 +31,6 @@ all:
       children:
         server:
         agent:
+
+  vars:
+    ansible_user: ansible
