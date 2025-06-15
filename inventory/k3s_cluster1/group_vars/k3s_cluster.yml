@@ -1,6 +1,12 @@
-# group_vars/cluster1_server.yml or group_vars/all.yml for cluster1
 ---
-api_endpoint: "{{ hostvars[groups['cluster1_server'][0]]['ansible_host'] | default(groups['cluster1_server'][0]) }}"
+k3s_version: v1.30.2+k3s1
+token: "{{ lookup('amazon.aws.aws_ssm', '/k3s/token', region='us-east-2' ) }}"
+api_port: 6443
+k3s_etcd_db_username: "{{ lookup('amazon.aws.aws_ssm', '/k3s/db_username', region='us-east-2' }}"
+k3s_etcd_db_password: "{{ lookup('amazon.aws.aws_ssm', '/k3s/db_password', region='us-east-2' }}"
+k3s_etcd_db_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/k3s/db_endpoint', region='us-east-2' }}"
+
+api_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
 cluster_context: skylab-cluster1
 
 # Cluster 1 specific networking
