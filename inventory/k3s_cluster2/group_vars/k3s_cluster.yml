@@ -26,7 +26,6 @@ server_config_yaml: |
   # Cluster 2 networking - different CIDRs to avoid conflicts
   cluster-cidr: "10.200.0.0/16"
   service-cidr: "10.210.0.0/16"
-  cluster-dns: "10.210.0.10"
   cluster-domain: "cluster2.skylarhoughtongithub.local"
   
   # Security

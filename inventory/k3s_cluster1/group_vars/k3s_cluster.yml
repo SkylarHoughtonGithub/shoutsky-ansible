@@ -19,13 +19,12 @@ extra_agent_args: >-
   --node-label cluster=skylab-cluster1
   --node-label environment=lab
   --kubelet-arg max-pods=250
-  --kubelet-arg cluster-domain=cluster1.skylarhoughtongithub.local
+  --kubelet-arg cluster-domain=skylarhoughtongithub.local
 
 server_config_yaml: |
   cluster-cidr: "10.100.0.0/16"
   service-cidr: "10.110.0.0/16"
-  cluster-dns: "10.110.0.10"
-  cluster-domain: "cluster1.skylarhoughtongithub.local"
+  cluster-domain: "skylarhoughtongithub.local"
   
   # Security
   secrets-encryption: true
