@@ -1,28 +1,27 @@
-===============================================================================
-                            PROXMOX HOST: $(hostname)
-===============================================================================
-
-UNAUTHORIZED ACCESS IS PROHIBITED
-This system is for authorized users only. All activities are monitored and
-logged. Unauthorized access will be prosecuted to the full extent of the law.
-
-System Information:
-  Hostname: $(hostname)
-  OS: $(cat /etc/os-release | grep PRETTY_NAME | sed 's/PRETTY_NAME=//')
-  Kernel: $(uname -r) $(uname -v)
-  Architecture: $(lscpu | grep Arch | awk '{print $2}')
-  Uptime: $(uptime -p)
-
-Hardware:
-  CPU: $(lscpu | grep "Model name" | sed  's/Model name://' | tr -d [:blank:])
-  Cores: $(lscpu | grep "CPU(s):" | grep -v "NUMA" | awk '{print $2}')
-  Memory Available: $(free -h | grep Mem: | awk '{print $2}')
-
-Current Usage:
-  Load Average: $(cat /proc/loadavg | cut -d' ' -f1-3)
-  Memory Usage: $(free | grep Mem | awk '{printf "%.1f%%", $3/$2 * 100.0}')
-  OS Disk Usage: $(df -h / | awk 'NR==2{printf "%s/%s (%s)", $3, $2, $5}')
-  Network Usage: $(ip -s link show vmbr0)
-
-Last Login: $(last -n 1 -F | head -n 1)
-===============================================================================
+#!/bin/bash
+echo ""
+echo "UNAUTHORIZED ACCESS IS PROHIBITED"
+echo "This system is for authorized users only. All activities are monitored and"
+echo "logged. Unauthorized access will be prosecuted to the full extent of the law."
+echo ""
+echo "==============================================================================="
+echo "                            PROXMOX HOST: $(hostname)"
+echo "==============================================================================="
+echo "System Information:"
+echo "  OS: $(cat /etc/os-release | grep PRETTY_NAME | sed 's/PRETTY_NAME=//' | tr -d '"')"
+echo "  Kernel: $(uname -r) $(uname -v)"
+echo "  Architecture: $(lscpu | grep Arch | awk '{print $2}')"
+echo "  Uptime: $(uptime -p)"
+echo ""
+echo "Hardware:"
+echo "  CPU: $(lscpu | grep "Model name" | sed 's/Model name://' | xargs)"
+echo "  Cores: $(lscpu | grep "CPU(s):" | grep -v "NUMA" | awk '{print $2}')"
+echo "  Memory Available: $(free -h | grep Mem: | awk '{print $2}')"
+echo ""
+echo "Current Usage:"
+echo "  Load Average: $(cat /proc/loadavg | cut -d' ' -f1-3)"
+echo "  Memory Usage: $(free | grep Mem | awk '{printf "%.1f%%", $3/$2 * 100.0}')"
+echo "  OS Disk Usage: $(df -h / | awk 'NR==2{printf "%s/%s (%s)", $3, $2, $5}')"
+echo -e "  Network Usage: \n"
+echo "$(ip -s link show vmbr0)"
+echo "==============================================================================="

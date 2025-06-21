@@ -25,21 +25,13 @@
       - net-tools
     state: present
 
-- name: Remove subscription banner (disable enterprise repo)
-  ansible.builtin.lineinfile:
-    path: /etc/apt/sources.list.d/pve-enterprise.list
-    regexp: '^deb https://enterprise.proxmox.com'
-    line: '# deb https://enterprise.proxmox.com/debian/pve bookworm pve-enterprise'
-    backup: yes
-  notify: update apt cache
-
-- name: Remove subscription nag from web interface
-  ansible.builtin.replace:
-    path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
-    regexp: "Ext.Msg.show\\(\\{[^}]*title: gettext\\('No valid subscription'\\)[^}]*\\}\\);"
-    replace: "void(0);"
-    backup: yes
-  ignore_errors: yes
+- name: Clone and install pve-nag-buster
+  ansible.builtin.shell: |
+    git clone https://github.com/foundObjects/pve-nag-buster.git /tmp/pve-nag-buster
+    cd /tmp/pve-nag-buster
+    sudo ./install.sh
+  args:
+    creates: /tmp/pve-nag-buster
 
 - name: Add Proxmox no-subscription repository
   ansible.builtin.lineinfile:
@@ -69,5 +61,5 @@
 - name: Set up custom MOTD
   ansible.builtin.template:
     src: motd.j2
-    dest: /etc/motd
-    backup: yes
+    dest: /etc/update-motd.d/00-skylab
+    mode: '0755'
