@@ -7,7 +7,7 @@ Requirements
 ------------
 
 - install sudo
-- setup ansible user with keypair for ssh access
+- setup ansible user with keypair for ssh access and passwordless sudo
 
 Example Playbook
 ----------------
