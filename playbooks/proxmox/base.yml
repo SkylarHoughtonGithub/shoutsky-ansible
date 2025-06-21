@@ -1,0 +1,10 @@
+---
+- name: Base Proxmox KVM Host Setup
+  hosts: proxmox_hosts
+  become: true
+  roles:
+  - name: proxmox_init
+    tags: [init]
+
+  - name: linux_tailscale
+    tags: [tailscale]
