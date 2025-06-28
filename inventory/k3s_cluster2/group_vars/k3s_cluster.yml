@@ -12,21 +12,16 @@ cluster_context: skylab-cluster2
 
 # Cluster 2 specific networking
 extra_server_args: >-
-  --cluster-domain skylarhoughtongithub.local
   --node-taint=node-role.kubernetes.io/control-plane:PreferNoSchedule
-  --tls-san skylab-cluster2.skylarhoughtongithub.local
 
 extra_agent_args: >-
   --node-label cluster=skylab-cluster2
   --node-label environment=lab
   --kubelet-arg max-pods=250
-  --kubelet-arg cluster-domain=cluster2.skylarhoughtongithub..local
 
 server_config_yaml: |
-  # Cluster 2 networking - different CIDRs to avoid conflicts
   cluster-cidr: "10.200.0.0/16"
   service-cidr: "10.210.0.0/16"
-  cluster-domain: "cluster2.skylarhoughtongithub.local"
   
   # Security
   secrets-encryption: true
@@ -49,7 +44,6 @@ agent_config_yaml: |
   kubelet-arg:
     - "max-pods=250"
     - "cluster-dns=10.210.0.10"
-    - "cluster-domain=cluster2.skylarhoughtongithub.local"
 
 # External etcd configuration
 etcd_cluster2_endpoint: "postgres://{{ k3s_etcd_db_username }}:{{ k3s_etcd_db_password }}@{{ k3s_etcd_db_endpoint }}:5432/k3s_cluster2?sslmode=require"
